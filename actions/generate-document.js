@@ -4,7 +4,7 @@ const documentSample = require('../samples/document');
 const documentMapping = require('../mappings/document');
 
 const payloadInput = (z, bundle) => {
-  if (bundle.inputData.realJson === true) {
+  if (bundle.inputData.realJson === 'Yes') {
     return [
       {
         key: 'payload',
@@ -25,10 +25,10 @@ const payloadInput = (z, bundle) => {
 };
 
 const lineItemsPayloadInput = (z, bundle) => {
-  if (bundle.inputData.useLineItems === true) {
+  if (bundle.inputData.useLineItems === 'Yes') {
     let fields;
 
-    if (bundle.inputData.realJson === true) {
+    if (bundle.inputData.realJson === 'Yes') {
       fields = [
         {
           key: 'itemPayload',

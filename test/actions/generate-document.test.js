@@ -199,4 +199,99 @@ describe('Actions::GenerateDocument', () => {
       });
     });
   });
+
+  describe('Fields', () => {
+    describe('Payload fields', () => {
+      describe('when realJson is "Yes"', () => {
+        const bundle = {
+          inputData: {
+            realJson: 'Yes'
+          }
+        };
+
+        it('shows fields for a JSON payload', (done) => {
+          appTester(App.creates.generateDocument.operation.inputFields[3], bundle)
+            .then(response => {
+              expect(response[0].key).toEqual('payload');
+              done();
+            })
+            .catch(done);
+        });
+      });
+
+      describe('when realJson is "No"', () => {
+        const bundle = {
+          inputData: {
+            realJson: 'No'
+          }
+        };
+
+        it('shows fields for a JSON payload', (done) => {
+          appTester(App.creates.generateDocument.operation.inputFields[3], bundle)
+            .then(response => {
+              expect(response[0].key).toEqual('payloadDict');
+              done();
+            })
+            .catch(done);
+        });
+      });
+    });
+
+    describe('Line Items Payload fields', () => {
+      describe('when useLineItems is "Yes"', () => {
+        describe('and realJson is "Yes"', () => {
+          const bundle = {
+            inputData: {
+              realJson: 'Yes',
+              useLineItems: 'Yes'
+            }
+          };
+
+          it('shows fields for a JSON payload', (done) => {
+            appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
+              .then(response => {
+                expect(response[0].children[0].key).toEqual('itemPayload');
+                done();
+              })
+              .catch(done);
+          });
+        });
+
+        describe('and realJson is "No"', () => {
+          const bundle = {
+            inputData: {
+              realJson: 'No',
+              useLineItems: 'Yes'
+            }
+          };
+
+          it('shows fields for a JSON payload', (done) => {
+            appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
+              .then(response => {
+                expect(response[0].children[0].key).toEqual('itemPayloadDict')
+                done();
+              })
+              .catch(done);
+          });
+        });
+      });
+
+      describe('when useLineItems is "No"', () => {
+        const bundle = {
+          inputData: {
+            useLineItems: 'No'
+          }
+        };
+
+        it('does not show any field for Line Items', (done) => {
+          appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
+            .then(response => {
+              expect(response).toEqual([]);
+              done();
+            })
+            .catch(done);
+        });
+      });
+    });
+  });
 });
