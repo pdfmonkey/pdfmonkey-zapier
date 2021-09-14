@@ -4,14 +4,17 @@ const documentSample = require('../samples/document');
 const documentMapping = require('../mappings/document');
 
 const getGeneratedDocuments = (z, bundle) => {
-  const params = { 'q[app_id]': bundle.inputData.appId };
+  const params = {
+    'q[app_id]': bundle.inputData.appId,
+    'page[size]': 100
+  };
 
   if (bundle.inputData.documentTemplateId) {
     params['q[document_template_id]'] = bundle.inputData.documentTemplateId.join(',');
   }
 
   const options = {
-    url: 'https://api.pdfmonkey.io/api/v1/documents',
+    url: `https://api.pdfmonkey.io/api/v1/documents`,
     headers: {
       Accept: 'application/json',
       Authorization: `Bearer ${bundle.authData.secretKey}`

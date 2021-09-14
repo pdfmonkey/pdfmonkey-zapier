@@ -19,7 +19,10 @@ describe('Triggers::DocumentGenerated', () => {
     it('returns a list of Documents', (done) => {
       pdfmonkeyApi
         .get('/api/v1/documents')
-        .query({ 'q[app_id]': '11111111-2222-3333-4444-555555555555' })
+        .query({
+          'q[app_id]': '11111111-2222-3333-4444-555555555555',
+          'page[size]': 100
+        })
         .reply(200, { documents: [documentSample] });
 
       const bundle = {
@@ -44,7 +47,8 @@ describe('Triggers::DocumentGenerated', () => {
         .get('/api/v1/documents')
         .query({
           'q[app_id]': '11111111-2222-3333-4444-555555555555',
-          'q[document_template_id]': '22222222-3333-4444-5555-666666666666,33333333-4444-5555-6666-777777777777'
+          'q[document_template_id]': '22222222-3333-4444-5555-666666666666,33333333-4444-5555-6666-777777777777',
+          'page[size]': 100
         })
         .reply(200, { documents: [documentSample] });
 
