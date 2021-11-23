@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## HEAD
+
+* (Add) Exposing the Public Share Link attribute for documents
+
 ## 3.1.1
 
 * (Fix) Force the pagination to load 100 records
