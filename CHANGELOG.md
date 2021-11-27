@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## HEAD
+
+* (Breaking) Renaming App to Workspace everywhere
+
 ## 3.2.0
 
 * (Add) Exposing the Public Share Link attribute for documents

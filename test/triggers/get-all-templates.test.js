@@ -9,7 +9,7 @@ const appTester = zapier.createAppTester(App);
 describe('Triggers::GetAllTemplates', () => {
   zapier.tools.env.inject();
 
-  it('returns the list of templates for a given app', (done) => {
+  it('returns the list of templates for a given workspace', (done) => {
     const templatesData = [
       {
         id: '22222222-3333-4444-5555-666666666666',
@@ -33,13 +33,13 @@ describe('Triggers::GetAllTemplates', () => {
 
     pdfmonkeyApi
       .get('/api/v1/document_template_cards')
-      .query({ 'q[app_id]': '11111111-2222-3333-4444-555555555555' })
+      .query({ 'q[workspace_id]': '11111111-2222-3333-4444-555555555555' })
       .reply(200, { document_template_cards: templatesData });
 
     const bundle = {
       ...bundleWithAuth(),
       inputData: {
-        appId: '11111111-2222-3333-4444-555555555555'
+        workspaceId: '11111111-2222-3333-4444-555555555555'
       }
     };
 

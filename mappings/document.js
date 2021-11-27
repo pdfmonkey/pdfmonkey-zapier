@@ -3,7 +3,7 @@
 module.exports = {
   fields: [
     { key: 'id',                   label: 'ID',                               type: 'string'   },
-    { key: 'app_id',               label: 'App ID',                           type: 'string'   },
+    { key: 'app_id',               label: 'Workspace ID',                     type: 'string'   },
     { key: 'checksum',             label: 'Preview Checksum',                 type: 'string'   },
     { key: 'created_at',           label: 'Creation DateTime',                type: 'datetime' },
     { key: 'document_template_id', label: 'Template ID',                      type: 'string'   },

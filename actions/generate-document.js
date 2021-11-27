@@ -155,12 +155,12 @@ module.exports = {
     perform: generateDocument,
     inputFields: [
       {
-        key: 'appId',
-        label: 'App',
+        key: 'workspaceId',
+        label: 'Workspace',
         type: 'string',
         required: true,
         altersDynamicFields: true,
-        dynamic: 'getAllApps.id.identifier'
+        dynamic: 'getAllWorkspaces.id.identifier'
       },
       {
         key: 'documentTemplateId',

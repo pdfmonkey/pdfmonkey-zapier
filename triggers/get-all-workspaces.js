@@ -1,8 +1,8 @@
 'use strict';
 
-const getAllApps = (z, bundle) => {
+const getAllWorkspaces = (z, bundle) => {
   const options = {
-    url: 'https://api.pdfmonkey.io/api/v1/apps',
+    url: 'https://api.pdfmonkey.io/api/v1/workspace_cards',
     headers: {
       Accept: 'application/json',
       Authorization: `Bearer ${bundle.authData.secretKey}`
@@ -12,27 +12,27 @@ const getAllApps = (z, bundle) => {
   return z.request(options).then(response => {
     response.throwForStatus();
     const results = z.JSON.parse(response.content);
-    const apps = results.apps.map(({id, identifier}) => ({ id, identifier }));
-    return apps;
+    const workspaces = results.workspace_cards.map(({id, identifier}) => ({ id, identifier }));
+    return workspaces;
   });
 };
 
 module.exports = {
-  key: 'getAllApps',
-  noun: 'App',
+  key: 'getAllWorkspaces',
+  noun: 'Workspace',
 
   display: {
     hidden: true,
     important: false,
-    label: 'Fetch all apps',
-    description: 'Fetch all accessible apps.'
+    label: 'Fetch all workspaces',
+    description: 'Fetch all accessible workspaces.'
   },
 
   operation: {
-    perform: getAllApps,
+    perform: getAllWorkspaces,
     sample: {
       id: '11111111-2222-3333-4444-555555555555',
-      identifier: 'Example App'
+      identifier: 'Example Workspace'
     },
     outputFields: [
       { key: 'id',          label: 'ID',   type: 'string' },

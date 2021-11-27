@@ -5,7 +5,7 @@ const documentMapping = require('../mappings/document');
 
 const getGeneratedDocuments = (z, bundle) => {
   const params = {
-    'q[app_id]': bundle.inputData.appId,
+    'q[workspace_id]': bundle.inputData.workspaceId,
     'page[size]': 100
   };
 
@@ -57,11 +57,11 @@ module.exports = {
     perform: getGeneratedDocuments,
     inputFields: [
       {
-        key: 'appId',
-        label: 'App',
+        key: 'workspaceId',
+        label: 'Workspace',
         type: 'string',
         required: true,
-        dynamic: 'getAllApps.id.identifier',
+        dynamic: 'getAllWorkspaces.id.identifier',
         altersDynamicFields: true
       },
       {
