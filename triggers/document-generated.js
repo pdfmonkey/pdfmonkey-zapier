@@ -14,7 +14,7 @@ const getGeneratedDocuments = (z, bundle) => {
   }
 
   const options = {
-    url: `https://api.pdfmonkey.io/api/v1/documents`,
+    url: `https://api.pdfmonkey.io/api/v1/document_cards`,
     headers: {
       Accept: 'application/json',
       Authorization: `Bearer ${bundle.authData.secretKey}`
@@ -26,13 +26,9 @@ const getGeneratedDocuments = (z, bundle) => {
     response.throwForStatus();
 
     const results = z.JSON.parse(response.content);
-    const documents = results.documents.filter(doc => doc.status == 'success');
+    const documents = results.document_cards.filter(doc => doc.status == 'success');
 
     for (let doc of documents) {
-      if (doc.payload && doc.payload.length > 2) {
-        doc.parsedPayload = JSON.parse(doc.payload);
-      }
-
       if (doc.meta && doc.meta.length > 2) {
         doc.parsedMeta = JSON.parse(doc.meta);
       }

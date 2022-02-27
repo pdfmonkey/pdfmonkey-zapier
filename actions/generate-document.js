@@ -1,7 +1,7 @@
 'use strict';
 
-const documentSample = require('../samples/document');
-const documentMapping = require('../mappings/document');
+const documentCardSample = require('../samples/document-card');
+const documentCardMapping = require('../mappings/document-card');
 
 const payloadInput = (z, bundle) => {
   if (bundle.inputData.realJson === 'Yes') {
@@ -207,7 +207,7 @@ module.exports = {
         altersDynamicFields: false
       }
     ],
-    sample: documentSample,
-    outputFields: documentMapping.fields
+    sample: documentCardSample,
+    outputFields: documentCardMapping.fields
   }
 };

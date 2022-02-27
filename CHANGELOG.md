@@ -3,6 +3,7 @@
 ## HEAD
 
 * (Breaking) Renaming App to Workspace everywhere
+* (Breaking) Switching from calling /documents to /document_cards in the document-generated endpoint
 
 ## 3.2.0
 
