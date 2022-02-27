@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## HEAD
+## 4.0.0
 
 * (Breaking) Renaming App to Workspace everywhere
 * (Breaking) Switching from calling /documents to /document_cards in the document-generated endpoint
