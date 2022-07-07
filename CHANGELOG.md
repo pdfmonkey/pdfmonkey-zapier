@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## HEAD
+## 4.0.1
 
 * (Fix) Skipping pagination when loading templates
 
