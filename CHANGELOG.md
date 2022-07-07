@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## HEAD
+
+* (Fix) Skipping pagination when loading templates
+
 ## 4.0.0
 
 * (Breaking) Renaming App to Workspace everywhere

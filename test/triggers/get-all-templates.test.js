@@ -33,7 +33,7 @@ describe('Triggers::GetAllTemplates', () => {
 
     pdfmonkeyApi
       .get('/api/v1/document_template_cards')
-      .query({ 'q[workspace_id]': '11111111-2222-3333-4444-555555555555' })
+      .query({ 'page': 'all', 'q[workspace_id]': '11111111-2222-3333-4444-555555555555' })
       .reply(200, { document_template_cards: templatesData });
 
     const bundle = {

@@ -8,6 +8,7 @@ const getAllTemplates = (z, bundle) => {
       Authorization: `Bearer ${bundle.authData.secretKey}`
     },
     params: {
+      page: 'all',
       'q[workspace_id]': bundle.inputData.workspaceId
     }
   };
