@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## HEAD
+
+* (Feature) Making the Document Generated trigger instant instead of using polling
+
 ## 4.0.1
 
 * (Fix) Skipping pagination when loading templates
