@@ -23,7 +23,7 @@ describe('Searches::FindDocument ', () => {
     };
 
     appTester(App.searches.findDocument.operation.perform, bundle)
-      .then(response => {
+      .then((response) => {
         expect(response).toEqual([
           {
             ...documentSample,

@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = {
+  // prettier-ignore
   fields: [
     { key: 'id',                   label: 'ID',                               type: 'string'   },
     { key: 'app_id',               label: 'Workspace ID',                     type: 'string'   },

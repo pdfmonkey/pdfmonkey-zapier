@@ -23,7 +23,7 @@ describe('Actions::DeleteDocument', () => {
     };
 
     appTester(App.creates.deleteDocument.operation.perform, bundle)
-      .then(response => {
+      .then((response) => {
         expect(response.deletedAt).toBeDefined();
         done();
       })

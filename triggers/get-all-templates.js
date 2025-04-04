@@ -13,7 +13,7 @@ const getAllTemplates = (z, bundle) => {
     }
   };
 
-  return z.request(options).then(response => {
+  return z.request(options).then((response) => {
     response.throwForStatus();
     const results = z.JSON.parse(response.content);
     return results.document_template_cards;
@@ -52,6 +52,7 @@ module.exports = {
       legacy: true
     },
     outputFields: [
+      // prettier-ignore
       { key: 'id',         label: 'ID',   type: 'string' },
       { key: 'identifier', label: 'Name', type: 'string' }
     ]

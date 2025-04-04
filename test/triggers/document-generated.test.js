@@ -32,7 +32,7 @@ describe('Triggers::DocumentGenerated', () => {
       };
 
       appTester(App.triggers.documentGenerated.operation.perform, bundle)
-        .then(response => {
+        .then((response) => {
           expect(response).toEqual([processesDocumentSample]);
           done();
         })
@@ -46,7 +46,8 @@ describe('Triggers::DocumentGenerated', () => {
         .get('/api/v1/document_cards')
         .query({
           'q[workspace_id]': '11111111-2222-3333-4444-555555555555',
-          'q[document_template_id]': '22222222-3333-4444-5555-666666666666,33333333-4444-5555-6666-777777777777',
+          'q[document_template_id]':
+            '22222222-3333-4444-5555-666666666666,33333333-4444-5555-6666-777777777777',
           'page[size]': 100
         })
         .reply(200, { document_cards: [documentCardSample] });
@@ -63,7 +64,7 @@ describe('Triggers::DocumentGenerated', () => {
       };
 
       appTester(App.triggers.documentGenerated.operation.perform, bundle)
-        .then(response => {
+        .then((response) => {
           expect(response).toEqual([processesDocumentSample]);
           done();
         })

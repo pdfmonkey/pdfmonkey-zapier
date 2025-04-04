@@ -43,7 +43,7 @@ describe('Actions::GenerateDocument', () => {
 
     it('creates the Document', (done) => {
       appTester(App.creates.generateDocument.operation.perform, bundle)
-        .then(response => {
+        .then((response) => {
           expect(response.id).toBeDefined();
           done();
         })
@@ -57,10 +57,7 @@ describe('Actions::GenerateDocument', () => {
       meta: {},
       payload: {
         name: 'Jane Doe',
-        lineItems: [
-          { name: 'Line Item 1' },
-          { name: 'Line Item 2' }
-        ]
+        lineItems: [{ name: 'Line Item 1' }, { name: 'Line Item 2' }]
       }
     });
 
@@ -79,7 +76,7 @@ describe('Actions::GenerateDocument', () => {
 
     it('creates the Document', (done) => {
       appTester(App.creates.generateDocument.operation.perform, bundle)
-        .then(response => {
+        .then((response) => {
           expect(response.id).toBeDefined();
           done();
         })
@@ -105,7 +102,7 @@ describe('Actions::GenerateDocument', () => {
 
     it('creates the Document', (done) => {
       appTester(App.creates.generateDocument.operation.perform, bundle)
-        .then(response => {
+        .then((response) => {
           expect(response.id).toBeDefined();
           done();
         })
@@ -119,10 +116,7 @@ describe('Actions::GenerateDocument', () => {
       meta: {},
       payload: {
         name: 'Jane Doe',
-        lineItems: [
-          { name: 'Line Item 1' },
-          { name: 'Line Item 2' }
-        ]
+        lineItems: [{ name: 'Line Item 1' }, { name: 'Line Item 2' }]
       }
     });
 
@@ -142,7 +136,7 @@ describe('Actions::GenerateDocument', () => {
 
     it('creates the Document', (done) => {
       appTester(App.creates.generateDocument.operation.perform, bundle)
-        .then(response => {
+        .then((response) => {
           expect(response.id).toBeDefined();
           done();
         })
@@ -211,7 +205,7 @@ describe('Actions::GenerateDocument', () => {
 
         it('shows fields for a JSON payload', (done) => {
           appTester(App.creates.generateDocument.operation.inputFields[3], bundle)
-            .then(response => {
+            .then((response) => {
               expect(response[0].key).toEqual('payload');
               done();
             })
@@ -228,7 +222,7 @@ describe('Actions::GenerateDocument', () => {
 
         it('shows fields for a JSON payload', (done) => {
           appTester(App.creates.generateDocument.operation.inputFields[3], bundle)
-            .then(response => {
+            .then((response) => {
               expect(response[0].key).toEqual('payloadDict');
               done();
             })
@@ -249,7 +243,7 @@ describe('Actions::GenerateDocument', () => {
 
           it('shows fields for a JSON payload', (done) => {
             appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
-              .then(response => {
+              .then((response) => {
                 expect(response[0].children[0].key).toEqual('itemPayload');
                 done();
               })
@@ -267,8 +261,8 @@ describe('Actions::GenerateDocument', () => {
 
           it('shows fields for a JSON payload', (done) => {
             appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
-              .then(response => {
-                expect(response[0].children[0].key).toEqual('itemPayloadDict')
+              .then((response) => {
+                expect(response[0].children[0].key).toEqual('itemPayloadDict');
                 done();
               })
               .catch(done);
@@ -285,7 +279,7 @@ describe('Actions::GenerateDocument', () => {
 
         it('does not show any field for Line Items', (done) => {
           appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
-            .then(response => {
+            .then((response) => {
               expect(response).toEqual([]);
               done();
             })

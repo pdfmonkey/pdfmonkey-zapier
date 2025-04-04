@@ -34,17 +34,18 @@ const lineItemsPayloadInput = (z, bundle) => {
           key: 'itemPayload',
           label: 'Dynamic Data for an Item (JSON Payload)',
           type: 'text',
-          helpText: 'JSON Payload **for a single item**. Format: `{ "name": "Cool product", "price": 123.45 }`. Available as `lineItems` in your PDFMonkey Template.',
-          default: "{\n  \"name\": \"Cool product\",\n  \"price\": 123.45\n}"
+          helpText:
+            'JSON Payload **for a single item**. Format: `{ "name": "Cool product", "price": 123.45 }`. Available as `lineItems` in your PDFMonkey Template.',
+          default: '{\n  "name": "Cool product",\n  "price": 123.45\n}'
         }
       ];
-    }
-    else {
+    } else {
       fields = [
         {
           key: 'itemPayloadDict',
           label: 'Dynamic Data for an Item',
-          helpText: 'Data **for a single item**. Available as `lineItems` in your PDFMonkey Template.',
+          helpText:
+            'Data **for a single item**. Available as `lineItems` in your PDFMonkey Template.',
           dict: true
         }
       ];
@@ -74,14 +75,13 @@ const generateDocument = (z, bundle) => {
     payload = JSON.parse(bundle.inputData.payload);
 
     if (useLineItems) {
-      payload.lineItems = lineItems.map(item => JSON.parse(item.itemPayload));
+      payload.lineItems = lineItems.map((item) => JSON.parse(item.itemPayload));
     }
-  }
-  else {
+  } else {
     payload = bundle.inputData.payloadDict || {};
 
     if (useLineItems) {
-      payload.lineItems = lineItems.map(item => item.itemPayloadDict);
+      payload.lineItems = lineItems.map((item) => item.itemPayloadDict);
     }
   }
 
@@ -174,7 +174,8 @@ module.exports = {
         label: 'Use a custom JSON structure',
         type: 'string',
         choices: ['Yes', 'No'],
-        helpText: 'Select Yes if you prefer writing a complete JSON payload instead of a basic Zapier mapping for the Document data.',
+        helpText:
+          'Select Yes if you prefer writing a complete JSON payload instead of a basic Zapier mapping for the Document data.',
         default: 'No',
         required: true,
         altersDynamicFields: true
@@ -195,13 +196,15 @@ module.exports = {
         key: 'filename',
         label: 'Custom Filename',
         type: 'string',
-        helpText: 'You can specify a custom filename for generated documents. A random value will be used if left empty.',
+        helpText:
+          'You can specify a custom filename for generated documents. A random value will be used if left empty.',
         required: false
       },
       {
         key: 'meta',
         label: 'Meta Data',
-        helpText: 'Additional data attached to the generated Document but not accessible in its Template.',
+        helpText:
+          'Additional data attached to the generated Document but not accessible in its Template.',
         dict: true,
         required: false,
         altersDynamicFields: false

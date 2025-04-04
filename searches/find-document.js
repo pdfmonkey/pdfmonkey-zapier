@@ -13,7 +13,7 @@ const findDocument = (z, bundle) => {
     }
   };
 
-  return z.request(options).then(response => {
+  return z.request(options).then((response) => {
     response.throwForStatus();
     const result = z.JSON.parse(response.content);
 

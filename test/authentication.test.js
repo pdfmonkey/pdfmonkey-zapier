@@ -33,10 +33,10 @@ describe('Authentication ', () => {
               email: 'jane@doe.com'
             }
           }
-        }
+        };
 
         appTester(App.authentication.connectionLabel, bundle)
-          .then(label => {
+          .then((label) => {
             expect(label).toEqual('Jane Doe (jane@doe.com)');
             done();
           })
@@ -52,10 +52,10 @@ describe('Authentication ', () => {
               email: 'jane@doe.com'
             }
           }
-        }
+        };
 
         appTester(App.authentication.connectionLabel, bundle)
-          .then(label => {
+          .then((label) => {
             expect(label).toEqual('jane@doe.com');
             done();
           })

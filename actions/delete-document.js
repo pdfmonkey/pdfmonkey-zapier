@@ -10,7 +10,7 @@ const deleteDocument = (z, bundle) => {
     }
   };
 
-  return z.request(options).then(response => {
+  return z.request(options).then((response) => {
     response.throwForStatus();
     return { deletedAt: new Date() };
   });
@@ -37,7 +37,7 @@ module.exports = {
       }
     ],
     sample: {
-      deletedAt: "2020-09-22T22:00:25.883Z"
+      deletedAt: '2020-09-22T22:00:25.883Z'
     },
     outputFields: [
       {

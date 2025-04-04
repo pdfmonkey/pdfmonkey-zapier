@@ -9,10 +9,10 @@ const getAllWorkspaces = (z, bundle) => {
     }
   };
 
-  return z.request(options).then(response => {
+  return z.request(options).then((response) => {
     response.throwForStatus();
     const results = z.JSON.parse(response.content);
-    const workspaces = results.workspace_cards.map(({id, identifier}) => ({ id, identifier }));
+    const workspaces = results.workspace_cards.map(({ id, identifier }) => ({ id, identifier }));
     return workspaces;
   });
 };
@@ -35,8 +35,9 @@ module.exports = {
       identifier: 'Example Workspace'
     },
     outputFields: [
-      { key: 'id',          label: 'ID',   type: 'string' },
-      { key: 'identifier',  label: 'Name', type: 'string' }
+      // prettier-ignore
+      { key: 'id',         label: 'ID',   type: 'string' },
+      { key: 'identifier', label: 'Name', type: 'string' }
     ]
   }
 };

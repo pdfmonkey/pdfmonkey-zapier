@@ -20,7 +20,8 @@ module.exports = {
       key: 'secretKey',
       type: 'password',
       label: 'Secret Key',
-      helpText: 'You can find this key in the PDFMonkey dashboard, in the [My Account page](https://dashboard.pdfmonkey.io/account).',
+      helpText:
+        'You can find this key in the PDFMonkey dashboard, in the [My Account page](https://dashboard.pdfmonkey.io/account).',
       required: true
     }
   ],
