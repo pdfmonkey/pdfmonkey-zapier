@@ -1,6 +1,7 @@
 const authentication = require('./authentication');
 
 const documentGeneratedTrigger = require('./triggers/document-generated');
+const documentGeneratedTriggerV2 = require('./triggers/document-generated-v2');
 const getAllWorkspacesTrigger = require('./triggers/get-all-workspaces');
 const getAllTemplatesTrigger = require('./triggers/get-all-templates');
 
@@ -16,6 +17,7 @@ module.exports = {
   authentication,
 
   triggers: {
+    [documentGeneratedTriggerV2.key]: documentGeneratedTriggerV2,
     [documentGeneratedTrigger.key]: documentGeneratedTrigger,
     [getAllWorkspacesTrigger.key]: getAllWorkspacesTrigger,
     [getAllTemplatesTrigger.key]: getAllTemplatesTrigger

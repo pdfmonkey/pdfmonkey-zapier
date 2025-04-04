@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 4.1.1 (2025-04-04)
+
+- (Fix) Introducing the instant trigger as a new trigger instead of replacing the old one
+
 ## 4.1.0 (2025-04-04)
 
 - (Feature) Making the Document Generated trigger instant instead of using polling
