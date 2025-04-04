@@ -21,7 +21,6 @@ module.exports = {
   noun: 'Document',
 
   display: {
-    important: true,
     label: 'Delete Document',
     description: 'Deletes a Document.'
   },

@@ -26,7 +26,6 @@ module.exports = {
 
   display: {
     hidden: true,
-    important: false,
     label: 'Fetch all templates',
     description: 'Fetch all accessible templates.'
   },

@@ -34,7 +34,6 @@ module.exports = {
   noun: 'Document',
 
   display: {
-    important: true,
     label: 'Find Document',
     description: 'Find a document in PDFMonkey.'
   },

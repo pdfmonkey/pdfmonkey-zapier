@@ -146,7 +146,6 @@ module.exports = {
   noun: 'Document',
 
   display: {
-    important: true,
     label: 'Generate Document',
     description: 'Generates a Document.'
   },

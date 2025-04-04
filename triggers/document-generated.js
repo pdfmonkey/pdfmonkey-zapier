@@ -99,7 +99,6 @@ module.exports = {
 
   display: {
     hidden: false,
-    important: true,
     label: 'Document Generated',
     description: "Triggers when a document's generation is complete and successful."
   },

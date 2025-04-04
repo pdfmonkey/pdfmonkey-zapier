@@ -23,7 +23,6 @@ module.exports = {
 
   display: {
     hidden: true,
-    important: false,
     label: 'Fetch all workspaces',
     description: 'Fetch all accessible workspaces.'
   },
