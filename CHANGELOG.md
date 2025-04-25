@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## HEAD
+## 4.1.2 (2025-04-25)
 
 - (Fix) Enforcing the same behavior around meta parsing between test and actual run in trigger
 
