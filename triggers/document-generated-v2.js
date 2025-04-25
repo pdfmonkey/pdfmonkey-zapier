@@ -46,8 +46,13 @@ const unsubscribeHook = async (z, bundle) => {
 };
 
 const performHook = (z, bundle) => {
-  const document = bundle.cleanedRequest.document;
+  const result = JSON.parse(bundle.rawRequest.content);
+  const document = cleanupDocument(result.document, z);
 
+  return [document];
+};
+
+const cleanupDocument = (document, z) => {
   if (document.meta && document.meta.length > 2) {
     try {
       document.parsedMeta = z.JSON.parse(document.meta);
@@ -56,7 +61,7 @@ const performHook = (z, bundle) => {
     }
   }
 
-  return [document];
+  return document;
 };
 
 const getSampleDocuments = async (z, bundle) => {
@@ -84,13 +89,7 @@ const getSampleDocuments = async (z, bundle) => {
   const results = z.JSON.parse(response.content);
   const documents = results.document_cards.filter((doc) => doc.status == 'success');
 
-  for (let doc of documents) {
-    if (doc.meta && doc.meta.length > 2) {
-      doc.parsedMeta = z.JSON.parse(doc.meta);
-    }
-  }
-
-  return documents;
+  return documents.map((doc) => cleanupDocument(doc, z));
 };
 
 module.exports = {

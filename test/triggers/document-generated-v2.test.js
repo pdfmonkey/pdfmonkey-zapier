@@ -81,10 +81,12 @@ describe('Triggers::DocumentGenerated_v2', () => {
   describe('performHook', () => {
     it('parses meta data from the webhook payload', (done) => {
       const bundle = {
-        cleanedRequest: {
-          document: {
-            ...documentCardSample
-          }
+        rawRequest: {
+          content: JSON.stringify({
+            document: {
+              ...documentCardSample
+            }
+          })
         }
       };
 

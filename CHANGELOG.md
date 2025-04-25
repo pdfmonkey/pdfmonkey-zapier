@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## HEAD
+
+- (Fix) Enforcing the same behavior around meta parsing between test and actual run in trigger
+
 ## 4.1.1 (2025-04-04)
 
 - (Fix) Introducing the instant trigger as a new trigger instead of replacing the old one
