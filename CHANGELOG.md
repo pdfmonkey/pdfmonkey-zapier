@@ -4,6 +4,7 @@
 
 - (Feature) Making the Generate Document action asynchronous through a Zapier callback so it no longer hits the 30-second limit on slow or large documents
 - (Chore) Registering a per-run, channel-scoped webhook instead of busy-polling the document status
+- (Breaking) Dropping the `parsedPayload` output from Generate Document: the callback returns a DocumentCard, which does not carry the payload
 
 ## 4.1.2 (2025-04-25)
 

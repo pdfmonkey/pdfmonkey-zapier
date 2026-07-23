@@ -238,6 +238,44 @@ describe('Actions::GenerateDocument', () => {
       });
     });
 
+    describe('when the Document creation fails', () => {
+      const captured = {};
+
+      beforeEach(() => {
+        captured.deleted = false;
+
+        pdfmonkeyApi
+          .post('/api/v1/rest_hooks')
+          .reply(201, { rest_hook: { id: REST_HOOK_ID } });
+
+        pdfmonkeyApi.post('/api/v1/documents').reply(422, { errors: ['boom'] });
+
+        pdfmonkeyApi.delete(`/api/v1/rest_hooks/${REST_HOOK_ID}`).reply(204, () => {
+          captured.deleted = true;
+          return '';
+        });
+      });
+
+      const bundle = {
+        ...bundleWithAuth(),
+        inputData: {
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payloadDict: {}
+        }
+      };
+
+      it('removes the orphaned webhook and rethrows', (done) => {
+        appTester(App.creates.generateDocument.operation.perform, bundle)
+          .then(() => done(new Error('expected the run to reject')))
+          .catch((error) => {
+            expect(error).toBeDefined();
+            expect(captured.deleted).toBe(true);
+            done();
+          });
+      });
+    });
+
     describe('when Zapier is loading a sample', () => {
       const bundle = {
         ...bundleWithAuth(),

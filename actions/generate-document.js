@@ -77,6 +77,19 @@ const cleanupDocument = (document, z) => {
   return document;
 };
 
+const deleteRestHook = async (z, secretKey, restHookId) => {
+  const response = await z.request({
+    url: `https://api.pdfmonkey.io/api/v1/rest_hooks/${restHookId}`,
+    method: 'DELETE',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${secretKey}`
+    }
+  });
+
+  response.throwForStatus();
+};
+
 // Generating a Document can take longer than Zapier's ~30s synchronous limit.
 // Instead of polling until it's done, we register a per-run webhook scoped to a
 // unique channel, hand Zapier a callback URL, and return immediately. Zapier
@@ -148,25 +161,40 @@ const generateDocument = async (z, bundle) => {
   hookResponse.throwForStatus();
   const restHookId = z.JSON.parse(hookResponse.content).rest_hook.id;
 
-  const createResponse = await z.request({
-    url: 'https://api.pdfmonkey.io/api/v1/documents',
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${bundle.authData.secretKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: {
-      document: {
-        document_template_id: bundle.inputData.documentTemplateId,
-        meta: JSON.stringify(meta),
-        payload: JSON.stringify(payload),
-        status: 'pending'
-      }
-    }
-  });
+  let createResponse;
 
-  createResponse.throwForStatus();
+  try {
+    createResponse = await z.request({
+      url: 'https://api.pdfmonkey.io/api/v1/documents',
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${bundle.authData.secretKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        document: {
+          document_template_id: bundle.inputData.documentTemplateId,
+          meta: JSON.stringify(meta),
+          payload: JSON.stringify(payload),
+          status: 'pending'
+        }
+      }
+    });
+
+    createResponse.throwForStatus();
+  } catch (error) {
+    // The webhook is already registered but no Document will ever notify it.
+    // Drop the orphaned hook before surfacing the original failure.
+    try {
+      await deleteRestHook(z, bundle.authData.secretKey, restHookId);
+    } catch (cleanupError) {
+      z.console.log('Failed to remove the temporary webhook after a failed creation:', cleanupError);
+    }
+
+    throw error;
+  }
+
   const document = z.JSON.parse(createResponse.content).document;
 
   return {
@@ -183,23 +211,16 @@ const resumeDocument = async (z, bundle) => {
   // Best-effort cleanup of the per-run webhook — never let it fail the run.
   if (restHookId) {
     try {
-      const response = await z.request({
-        url: `https://api.pdfmonkey.io/api/v1/rest_hooks/${restHookId}`,
-        method: 'DELETE',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${bundle.authData.secretKey}`
-        }
-      });
-      response.throwForStatus();
+      await deleteRestHook(z, bundle.authData.secretKey, restHookId);
     } catch (error) {
       z.console.log('Failed to remove the temporary webhook:', error);
     }
   }
 
-  // The payload is a DocumentCard wrapped in a `document` key. Return it as-is
-  // whether generation succeeded or failed so the user can branch downstream.
-  const result = JSON.parse(bundle.rawRequest.content);
+  // The callback body is a DocumentCard wrapped in a `document` key. We hand it
+  // back whether generation succeeded or failed (never branching on status) so
+  // the user can route downstream themselves.
+  const result = z.JSON.parse(bundle.rawRequest.content);
 
   return cleanupDocument(result.document, z);
 };
