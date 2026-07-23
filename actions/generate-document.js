@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const documentCardSample = require('../samples/document-card');
 const documentCardMapping = require('../mappings/document-card');
 
@@ -63,7 +64,25 @@ const lineItemsPayloadInput = (z, bundle) => {
   return [];
 };
 
-const generateDocument = (z, bundle) => {
+const cleanupDocument = (document, z) => {
+  if (document.meta && document.meta.length > 2) {
+    try {
+      document.parsedMeta = z.JSON.parse(document.meta);
+      delete document.parsedMeta._webhook_channel;
+    } catch (error) {
+      z.console.log('Error parsing meta:', error);
+    }
+  }
+
+  return document;
+};
+
+// Generating a Document can take longer than Zapier's ~30s synchronous limit.
+// Instead of polling until it's done, we register a per-run webhook scoped to a
+// unique channel, hand Zapier a callback URL, and return immediately. Zapier
+// pauses the Task until PDFMonkey notifies that channel, and `resumeDocument`
+// picks it back up.
+const generateDocument = async (z, bundle) => {
   let payload;
 
   let filename = bundle.inputData.filename;
@@ -89,7 +108,47 @@ const generateDocument = (z, bundle) => {
     meta._filename = filename;
   }
 
-  const options = {
+  // Registering a callback while Zapier loads a sample would leave the Task
+  // hanging, so return a static sample synchronously instead.
+  if (bundle.meta && bundle.meta.isLoadingSample) {
+    return documentCardSample;
+  }
+
+  const callbackUrl = z.generateCallbackUrl();
+  const channel = `zapier-${crypto.randomUUID()}`;
+
+  // PDFMonkey routes each Document to a single `_webhook_channel`, so we must
+  // claim it for this run's callback, overriding any value the user provided.
+  if (meta._webhook_channel) {
+    z.console.log('Overriding the provided meta._webhook_channel to route this run’s callback.');
+  }
+  meta._webhook_channel = channel;
+
+  // Register the webhook BEFORE creating the Document so we never miss a
+  // generation that completes immediately.
+  const hookResponse = await z.request({
+    url: 'https://api.pdfmonkey.io/api/v1/rest_hooks',
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${bundle.authData.secretKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: {
+      rest_hook: {
+        custom_channel: channel,
+        event: 'documents.generation.success,documents.generation.failure',
+        platform: 'Zapier',
+        url: callbackUrl,
+        workspace_id: bundle.inputData.workspaceId
+      }
+    }
+  });
+
+  hookResponse.throwForStatus();
+  const restHookId = z.JSON.parse(hookResponse.content).rest_hook.id;
+
+  const createResponse = await z.request({
     url: 'https://api.pdfmonkey.io/api/v1/documents',
     method: 'POST',
     headers: {
@@ -105,40 +164,44 @@ const generateDocument = (z, bundle) => {
         status: 'pending'
       }
     }
-  };
-
-  return z.request(options).then(async (response) => {
-    response.throwForStatus();
-
-    let result = z.JSON.parse(response.content);
-    let documentId = result.document.id;
-    let documentStatus = result.document.status;
-
-    const getOptions = {
-      url: `https://api.pdfmonkey.io/api/v1/documents/${documentId}`,
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${bundle.authData.secretKey}`
-      }
-    };
-
-    while (documentStatus != 'success' && documentStatus != 'failure') {
-      response = await z.request(getOptions);
-      response.throwForStatus();
-      result = z.JSON.parse(response.content);
-      documentStatus = result.document.status;
-    }
-
-    if (result.document.payload && result.document.payload.length > 2) {
-      result.document.parsedPayload = JSON.parse(result.document.payload);
-    }
-
-    if (result.document.meta && result.document.meta.length > 2) {
-      result.document.parsedMeta = JSON.parse(result.document.meta);
-    }
-
-    return result.document;
   });
+
+  createResponse.throwForStatus();
+  const document = z.JSON.parse(createResponse.content).document;
+
+  return {
+    id: document.id,
+    status: document.status,
+    _restHookId: restHookId
+  };
+};
+
+// Called when PDFMonkey POSTs the finished DocumentCard to the callback URL.
+const resumeDocument = async (z, bundle) => {
+  const restHookId = bundle.outputData && bundle.outputData._restHookId;
+
+  // Best-effort cleanup of the per-run webhook — never let it fail the run.
+  if (restHookId) {
+    try {
+      const response = await z.request({
+        url: `https://api.pdfmonkey.io/api/v1/rest_hooks/${restHookId}`,
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${bundle.authData.secretKey}`
+        }
+      });
+      response.throwForStatus();
+    } catch (error) {
+      z.console.log('Failed to remove the temporary webhook:', error);
+    }
+  }
+
+  // The payload is a DocumentCard wrapped in a `document` key. Return it as-is
+  // whether generation succeeded or failed so the user can branch downstream.
+  const result = JSON.parse(bundle.rawRequest.content);
+
+  return cleanupDocument(result.document, z);
 };
 
 module.exports = {
@@ -152,6 +215,7 @@ module.exports = {
 
   operation: {
     perform: generateDocument,
+    performResume: resumeDocument,
     inputFields: [
       {
         key: 'workspaceId',

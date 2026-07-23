@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+- (Feature) Making the Generate Document action asynchronous through a Zapier callback so it no longer hits the 30-second limit on slow or large documents
+- (Chore) Registering a per-run, channel-scoped webhook instead of busy-polling the document status
+
 ## 4.1.2 (2025-04-25)
 
 - (Fix) Enforcing the same behavior around meta parsing between test and actual run in trigger

@@ -1,196 +1,298 @@
 'use strict';
 
 const App = require('../../index');
-const documentSample = require('../../samples/document');
+const documentCardSample = require('../../samples/document-card');
 const zapier = require('zapier-platform-core');
 const { bundleWithAuth, pdfmonkeyApi } = require('../test-helpers');
 
 const appTester = zapier.createAppTester(App);
 
-const mockRequest = (data) => {
-  beforeEach(() => {
-    if (typeof data.payload !== 'string') {
-      data.payload = JSON.stringify(data.payload);
-    }
+const TEMPLATE_ID = '11111111-2222-3333-4444-555555555555';
+const WORKSPACE_ID = '66666666-7777-8888-9999-000000000000';
+const REST_HOOK_ID = '123456';
 
-    if (typeof data.meta !== 'string') {
-      data.meta = JSON.stringify(data.meta);
-    }
+// Captures the bodies PDFMonkey receives so tests can assert on the generated
+// channel, which is only known at runtime.
+const mockGeneration = () => {
+  const captured = {};
+
+  beforeEach(() => {
+    captured.hook = null;
+    captured.document = null;
 
     pdfmonkeyApi
-      .post('/api/v1/documents', { document: { ...data, status: 'pending' } })
-      .reply(201, { document: documentSample });
+      .post('/api/v1/rest_hooks', (body) => {
+        captured.hook = body.rest_hook;
+        return true;
+      })
+      .reply(201, { rest_hook: { id: REST_HOOK_ID } });
+
+    pdfmonkeyApi
+      .post('/api/v1/documents', (body) => {
+        captured.document = body.document;
+        return true;
+      })
+      .reply(201, { document: { id: 'doc-1', status: 'pending' } });
   });
+
+  return captured;
 };
 
 describe('Actions::GenerateDocument', () => {
   zapier.tools.env.inject();
 
-  describe('with basic data', () => {
-    mockRequest({
-      document_template_id: '11111111-2222-3333-4444-555555555555',
-      meta: {},
-      payload: { name: 'Jane Doe' }
-    });
+  describe('perform', () => {
+    describe('with basic data', () => {
+      const captured = mockGeneration();
 
-    const bundle = {
-      ...bundleWithAuth(),
-      inputData: {
-        documentTemplateId: '11111111-2222-3333-4444-555555555555',
-        payloadDict: { name: 'Jane Doe' }
-      }
-    };
+      const bundle = {
+        ...bundleWithAuth(),
+        inputData: {
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payloadDict: { name: 'Jane Doe' }
+        }
+      };
 
-    it('creates the Document', (done) => {
-      appTester(App.creates.generateDocument.operation.perform, bundle)
-        .then((response) => {
-          expect(response.id).toBeDefined();
-          done();
-        })
-        .catch(done);
-    });
-  });
+      it('registers a channel-scoped webhook and returns the pending Document', (done) => {
+        appTester(App.creates.generateDocument.operation.perform, bundle)
+          .then((response) => {
+            expect(response).toEqual({
+              id: 'doc-1',
+              status: 'pending',
+              _restHookId: REST_HOOK_ID
+            });
 
-  describe('with data and line items', () => {
-    mockRequest({
-      document_template_id: '11111111-2222-3333-4444-555555555555',
-      meta: {},
-      payload: {
-        name: 'Jane Doe',
-        lineItems: [{ name: 'Line Item 1' }, { name: 'Line Item 2' }]
-      }
-    });
+            const channel = captured.hook.custom_channel;
+            expect(channel).toMatch(/^zapier-/);
+            expect(captured.hook.event).toEqual(
+              'documents.generation.success,documents.generation.failure'
+            );
+            expect(captured.hook.url).toBeDefined();
+            expect(captured.hook.workspace_id).toEqual(WORKSPACE_ID);
 
-    const bundle = {
-      ...bundleWithAuth(),
-      inputData: {
-        documentTemplateId: '11111111-2222-3333-4444-555555555555',
-        payloadDict: { name: 'Jane Doe' },
-        useLineItems: 'Yes',
-        lineItems: [
-          { itemPayloadDict: { name: 'Line Item 1' } },
-          { itemPayloadDict: { name: 'Line Item 2' } }
-        ]
-      }
-    };
-
-    it('creates the Document', (done) => {
-      appTester(App.creates.generateDocument.operation.perform, bundle)
-        .then((response) => {
-          expect(response.id).toBeDefined();
-          done();
-        })
-        .catch(done);
-    });
-  });
-
-  describe('with data as real JSON', () => {
-    mockRequest({
-      document_template_id: '11111111-2222-3333-4444-555555555555',
-      meta: {},
-      payload: { name: 'Jane Doe' }
-    });
-
-    const bundle = {
-      ...bundleWithAuth(),
-      inputData: {
-        documentTemplateId: '11111111-2222-3333-4444-555555555555',
-        payload: '{ "name": "Jane Doe" }',
-        realJson: 'Yes'
-      }
-    };
-
-    it('creates the Document', (done) => {
-      appTester(App.creates.generateDocument.operation.perform, bundle)
-        .then((response) => {
-          expect(response.id).toBeDefined();
-          done();
-        })
-        .catch(done);
-    });
-  });
-
-  describe('with data and line items as real JSON', () => {
-    mockRequest({
-      document_template_id: '11111111-2222-3333-4444-555555555555',
-      meta: {},
-      payload: {
-        name: 'Jane Doe',
-        lineItems: [{ name: 'Line Item 1' }, { name: 'Line Item 2' }]
-      }
-    });
-
-    const bundle = {
-      ...bundleWithAuth(),
-      inputData: {
-        documentTemplateId: '11111111-2222-3333-4444-555555555555',
-        payload: '{ "name": "Jane Doe" }',
-        realJson: 'Yes',
-        useLineItems: 'Yes',
-        lineItems: [
-          { itemPayload: '{ "name": "Line Item 1" }' },
-          { itemPayload: '{ "name": "Line Item 2" }' }
-        ]
-      }
-    };
-
-    it('creates the Document', (done) => {
-      appTester(App.creates.generateDocument.operation.perform, bundle)
-        .then((response) => {
-          expect(response.id).toBeDefined();
-          done();
-        })
-        .catch(done);
-    });
-  });
-
-  describe('when a filename is specified', () => {
-    describe('and no filename has been specified in meta', () => {
-      mockRequest({
-        document_template_id: '11111111-2222-3333-4444-555555555555',
-        meta: { name: 'Test', _filename: 'test-doc.pdf' },
-        payload: {}
+            expect(JSON.parse(captured.document.meta)._webhook_channel).toEqual(channel);
+            done();
+          })
+          .catch(done);
       });
+    });
 
-      it('adds it to the meta', (done) => {
+    describe('with data and line items', () => {
+      const captured = mockGeneration();
+
+      const bundle = {
+        ...bundleWithAuth(),
+        inputData: {
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payloadDict: { name: 'Jane Doe' },
+          useLineItems: 'Yes',
+          lineItems: [
+            { itemPayloadDict: { name: 'Line Item 1' } },
+            { itemPayloadDict: { name: 'Line Item 2' } }
+          ]
+        }
+      };
+
+      it('sends the line items in the payload', (done) => {
+        appTester(App.creates.generateDocument.operation.perform, bundle)
+          .then((response) => {
+            expect(response.id).toEqual('doc-1');
+            expect(JSON.parse(captured.document.payload).lineItems).toEqual([
+              { name: 'Line Item 1' },
+              { name: 'Line Item 2' }
+            ]);
+            done();
+          })
+          .catch(done);
+      });
+    });
+
+    describe('with data as real JSON', () => {
+      const captured = mockGeneration();
+
+      const bundle = {
+        ...bundleWithAuth(),
+        inputData: {
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payload: '{ "name": "Jane Doe" }',
+          realJson: 'Yes'
+        }
+      };
+
+      it('sends the parsed payload', (done) => {
+        appTester(App.creates.generateDocument.operation.perform, bundle)
+          .then((response) => {
+            expect(response.id).toEqual('doc-1');
+            expect(JSON.parse(captured.document.payload)).toEqual({ name: 'Jane Doe' });
+            done();
+          })
+          .catch(done);
+      });
+    });
+
+    describe('with data and line items as real JSON', () => {
+      const captured = mockGeneration();
+
+      const bundle = {
+        ...bundleWithAuth(),
+        inputData: {
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payload: '{ "name": "Jane Doe" }',
+          realJson: 'Yes',
+          useLineItems: 'Yes',
+          lineItems: [
+            { itemPayload: '{ "name": "Line Item 1" }' },
+            { itemPayload: '{ "name": "Line Item 2" }' }
+          ]
+        }
+      };
+
+      it('sends the parsed line items', (done) => {
+        appTester(App.creates.generateDocument.operation.perform, bundle)
+          .then((response) => {
+            expect(response.id).toEqual('doc-1');
+            expect(JSON.parse(captured.document.payload).lineItems).toEqual([
+              { name: 'Line Item 1' },
+              { name: 'Line Item 2' }
+            ]);
+            done();
+          })
+          .catch(done);
+      });
+    });
+
+    describe('when a custom _webhook_channel is provided', () => {
+      const captured = mockGeneration();
+
+      const bundle = {
+        ...bundleWithAuth(),
+        inputData: {
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payloadDict: {},
+          meta: { _webhook_channel: 'mine' }
+        }
+      };
+
+      it('supersedes it with the generated channel', (done) => {
+        appTester(App.creates.generateDocument.operation.perform, bundle)
+          .then(() => {
+            expect(JSON.parse(captured.document.meta)._webhook_channel).toMatch(/^zapier-/);
+            done();
+          })
+          .catch(done);
+      });
+    });
+
+    describe('when a filename is specified', () => {
+      describe('and no filename has been specified in meta', () => {
+        const captured = mockGeneration();
+
         const bundle = {
           ...bundleWithAuth(),
           inputData: {
-            documentTemplateId: '11111111-2222-3333-4444-555555555555',
+            workspaceId: WORKSPACE_ID,
+            documentTemplateId: TEMPLATE_ID,
             payloadDict: {},
             meta: { name: 'Test' },
             filename: 'test-doc.pdf'
           }
         };
 
-        appTester(App.creates.generateDocument.operation.perform, bundle)
-          .then(() => done())
-          .catch(done);
+        it('adds it to the meta', (done) => {
+          appTester(App.creates.generateDocument.operation.perform, bundle)
+            .then(() => {
+              expect(JSON.parse(captured.document.meta)._filename).toEqual('test-doc.pdf');
+              done();
+            })
+            .catch(done);
+        });
+      });
+
+      describe('and a filename is also specified in the meta', () => {
+        const captured = mockGeneration();
+
+        const bundle = {
+          ...bundleWithAuth(),
+          inputData: {
+            workspaceId: WORKSPACE_ID,
+            documentTemplateId: TEMPLATE_ID,
+            payloadDict: {},
+            meta: { name: 'Test', _filename: 'already-present.pdf' },
+            filename: 'test-doc.pdf'
+          }
+        };
+
+        it('does not override it', (done) => {
+          appTester(App.creates.generateDocument.operation.perform, bundle)
+            .then(() => {
+              expect(JSON.parse(captured.document.meta)._filename).toEqual('already-present.pdf');
+              done();
+            })
+            .catch(done);
+        });
       });
     });
 
-    describe('and a filename is also specified in the meta', () => {
-      mockRequest({
-        document_template_id: '11111111-2222-3333-4444-555555555555',
-        meta: { name: 'Test', _filename: 'already-present.pdf' },
-        payload: {}
-      });
-
+    describe('when Zapier is loading a sample', () => {
       const bundle = {
         ...bundleWithAuth(),
+        meta: { isLoadingSample: true },
         inputData: {
-          documentTemplateId: '11111111-2222-3333-4444-555555555555',
-          payloadDict: {},
-          meta: { name: 'Test', _filename: 'already-present.pdf' },
-          filename: 'test-doc.pdf'
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payloadDict: {}
         }
       };
 
-      it('does not override it', (done) => {
+      it('returns a sample without registering a webhook', (done) => {
         appTester(App.creates.generateDocument.operation.perform, bundle)
-          .then(() => done())
+          .then((response) => {
+            expect(response).toEqual(documentCardSample);
+            done();
+          })
           .catch(done);
       });
+    });
+  });
+
+  describe('performResume', () => {
+    const resumeBundle = (status) => ({
+      ...bundleWithAuth(),
+      outputData: { _restHookId: REST_HOOK_ID },
+      rawRequest: {
+        content: JSON.stringify({
+          document: { ...documentCardSample, status }
+        })
+      }
+    });
+
+    beforeEach(() => {
+      pdfmonkeyApi.delete(`/api/v1/rest_hooks/${REST_HOOK_ID}`).reply(204);
+    });
+
+    it('removes the temporary webhook and returns the finished Document', (done) => {
+      appTester(App.creates.generateDocument.operation.performResume, resumeBundle('success'))
+        .then((response) => {
+          expect(response.id).toEqual(documentCardSample.id);
+          expect(response.status).toEqual('success');
+          expect(response.parsedMeta).toEqual({ _filename: 'demo-document.pdf' });
+          done();
+        })
+        .catch(done);
+    });
+
+    it('returns the failed Document without throwing', (done) => {
+      appTester(App.creates.generateDocument.operation.performResume, resumeBundle('failure'))
+        .then((response) => {
+          expect(response.status).toEqual('failure');
+          done();
+        })
+        .catch(done);
     });
   });
 
