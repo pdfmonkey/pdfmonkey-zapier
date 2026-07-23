@@ -5,6 +5,7 @@
 - (Chore) Upgrading `zapier-platform-core` from 16.3.1 to 19.0.0 and pinning the Node engine to 20+
 - (Improvement) Switching the Generate Document toggles to native boolean checkboxes and the raw-JSON inputs to the native `json` field type (validated by Zapier); legacy `Yes`/string values from existing Zaps are still accepted
 - (Chore) Extracting the duplicated document meta/payload parsing into a shared `lib/cleanup-document` helper and standardizing on `z.JSON.parse`
+- (Improvement) Surfacing a readable error when a Generate Document JSON payload or line item can't be parsed, instead of a raw `SyntaxError`
 - (Feature) Making the Generate Document action asynchronous through a Zapier callback so it no longer hits the 30-second limit on slow or large documents
 - (Chore) Registering a per-run, channel-scoped webhook instead of busy-polling the document status
 - (Breaking) Dropping the `parsedPayload` output from Generate Document: the callback returns a DocumentCard, which does not carry the payload

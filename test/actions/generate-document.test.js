@@ -191,6 +191,27 @@ describe('Actions::GenerateDocument', () => {
       });
     });
 
+    describe('with malformed JSON payload', () => {
+      const bundle = {
+        ...bundleWithAuth(),
+        inputData: {
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payload: '{ not valid',
+          realJson: true
+        }
+      };
+
+      it('rejects with a readable message and never registers a webhook', (done) => {
+        appTester(App.creates.generateDocument.operation.perform, bundle)
+          .then(() => done(new Error('expected the run to reject')))
+          .catch((error) => {
+            expect(error.message).toContain("isn't valid JSON");
+            done();
+          });
+      });
+    });
+
     describe('when a custom _webhook_channel is provided', () => {
       const captured = mockGeneration();
 

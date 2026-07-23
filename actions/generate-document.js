@@ -10,8 +10,17 @@ const documentCardMapping = require('../mappings/document-card');
 const isEnabled = (value) => value === true || value === 'Yes';
 
 // Native `json` fields arrive parsed, but a field mapped to a single string
-// value can still come through as text — normalize either shape to an object.
-const asObject = (value) => (typeof value === 'string' ? JSON.parse(value) : value || {});
+// value can still come through as text — normalize either shape to an object,
+// surfacing a readable message instead of a raw SyntaxError on bad input.
+const asObject = (value, z, label) => {
+  if (typeof value !== 'string') return value || {};
+
+  try {
+    return z.JSON.parse(value);
+  } catch (error) {
+    throw new z.errors.Error(`The ${label} isn't valid JSON. Please check its syntax.`, 'InvalidPayload', 400);
+  }
+};
 
 const payloadInput = (z, bundle) => {
   if (isEnabled(bundle.inputData.realJson)) {
@@ -100,10 +109,10 @@ const generateDocument = async (z, bundle) => {
   let useLineItems = isEnabled(bundle.inputData.useLineItems);
 
   if (isEnabled(bundle.inputData.realJson)) {
-    payload = asObject(bundle.inputData.payload);
+    payload = asObject(bundle.inputData.payload, z, 'JSON payload');
 
     if (useLineItems) {
-      payload.lineItems = lineItems.map((item) => asObject(item.itemPayload));
+      payload.lineItems = lineItems.map((item) => asObject(item.itemPayload, z, 'line item JSON'));
     }
   } else {
     payload = bundle.inputData.payloadDict || {};
