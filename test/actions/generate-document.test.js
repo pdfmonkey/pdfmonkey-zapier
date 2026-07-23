@@ -87,7 +87,7 @@ describe('Actions::GenerateDocument', () => {
           workspaceId: WORKSPACE_ID,
           documentTemplateId: TEMPLATE_ID,
           payloadDict: { name: 'Jane Doe' },
-          useLineItems: 'Yes',
+          useLineItems: true,
           lineItems: [
             { itemPayloadDict: { name: 'Line Item 1' } },
             { itemPayloadDict: { name: 'Line Item 2' } }
@@ -112,13 +112,14 @@ describe('Actions::GenerateDocument', () => {
     describe('with data as real JSON', () => {
       const captured = mockGeneration();
 
+      // Native `json` fields hand `perform` an already-parsed object.
       const bundle = {
         ...bundleWithAuth(),
         inputData: {
           workspaceId: WORKSPACE_ID,
           documentTemplateId: TEMPLATE_ID,
-          payload: '{ "name": "Jane Doe" }',
-          realJson: 'Yes'
+          payload: { name: 'Jane Doe' },
+          realJson: true
         }
       };
 
@@ -141,13 +142,10 @@ describe('Actions::GenerateDocument', () => {
         inputData: {
           workspaceId: WORKSPACE_ID,
           documentTemplateId: TEMPLATE_ID,
-          payload: '{ "name": "Jane Doe" }',
-          realJson: 'Yes',
-          useLineItems: 'Yes',
-          lineItems: [
-            { itemPayload: '{ "name": "Line Item 1" }' },
-            { itemPayload: '{ "name": "Line Item 2" }' }
-          ]
+          payload: { name: 'Jane Doe' },
+          realJson: true,
+          useLineItems: true,
+          lineItems: [{ itemPayload: { name: 'Line Item 1' } }, { itemPayload: { name: 'Line Item 2' } }]
         }
       };
 
@@ -159,6 +157,34 @@ describe('Actions::GenerateDocument', () => {
               { name: 'Line Item 1' },
               { name: 'Line Item 2' }
             ]);
+            done();
+          })
+          .catch(done);
+      });
+    });
+
+    // Zaps saved before these inputs became native boolean/json fields still
+    // send 'Yes' and stringified JSON; the tolerant helpers must accept both.
+    describe('with legacy string inputs', () => {
+      const captured = mockGeneration();
+
+      const bundle = {
+        ...bundleWithAuth(),
+        inputData: {
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payload: '{ "name": "Jane Doe" }',
+          realJson: 'Yes',
+          useLineItems: 'Yes',
+          lineItems: [{ itemPayload: '{ "name": "Line Item 1" }' }]
+        }
+      };
+
+      it('parses the stringified payload and line items', (done) => {
+        appTester(App.creates.generateDocument.operation.perform, bundle)
+          .then(() => {
+            const payload = JSON.parse(captured.document.payload);
+            expect(payload).toEqual({ name: 'Jane Doe', lineItems: [{ name: 'Line Item 1' }] });
             done();
           })
           .catch(done);
@@ -336,31 +362,24 @@ describe('Actions::GenerateDocument', () => {
 
   describe('Fields', () => {
     describe('Payload fields', () => {
-      describe('when realJson is "Yes"', () => {
-        const bundle = {
-          inputData: {
-            realJson: 'Yes'
-          }
-        };
+      describe('when realJson is enabled', () => {
+        const bundle = { inputData: { realJson: true } };
 
-        it('shows fields for a JSON payload', (done) => {
+        it('shows the JSON payload field', (done) => {
           appTester(App.creates.generateDocument.operation.inputFields[3], bundle)
             .then((response) => {
               expect(response[0].key).toEqual('payload');
+              expect(response[0].type).toEqual('json');
               done();
             })
             .catch(done);
         });
       });
 
-      describe('when realJson is "No"', () => {
-        const bundle = {
-          inputData: {
-            realJson: 'No'
-          }
-        };
+      describe('when realJson is disabled', () => {
+        const bundle = { inputData: { realJson: false } };
 
-        it('shows fields for a JSON payload', (done) => {
+        it('shows the dict payload field', (done) => {
           appTester(App.creates.generateDocument.operation.inputFields[3], bundle)
             .then((response) => {
               expect(response[0].key).toEqual('payloadDict');
@@ -372,50 +391,34 @@ describe('Actions::GenerateDocument', () => {
     });
 
     describe('Line Items Payload fields', () => {
-      describe('when useLineItems is "Yes"', () => {
-        describe('and realJson is "Yes"', () => {
-          const bundle = {
-            inputData: {
-              realJson: 'Yes',
-              useLineItems: 'Yes'
-            }
-          };
+      describe('when useLineItems is enabled and realJson is enabled', () => {
+        const bundle = { inputData: { realJson: true, useLineItems: true } };
 
-          it('shows fields for a JSON payload', (done) => {
-            appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
-              .then((response) => {
-                expect(response[0].children[0].key).toEqual('itemPayload');
-                done();
-              })
-              .catch(done);
-          });
-        });
-
-        describe('and realJson is "No"', () => {
-          const bundle = {
-            inputData: {
-              realJson: 'No',
-              useLineItems: 'Yes'
-            }
-          };
-
-          it('shows fields for a JSON payload', (done) => {
-            appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
-              .then((response) => {
-                expect(response[0].children[0].key).toEqual('itemPayloadDict');
-                done();
-              })
-              .catch(done);
-          });
+        it('shows the JSON item field', (done) => {
+          appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
+            .then((response) => {
+              expect(response[0].children[0].key).toEqual('itemPayload');
+              done();
+            })
+            .catch(done);
         });
       });
 
-      describe('when useLineItems is "No"', () => {
-        const bundle = {
-          inputData: {
-            useLineItems: 'No'
-          }
-        };
+      describe('when useLineItems is enabled and realJson is disabled', () => {
+        const bundle = { inputData: { realJson: false, useLineItems: true } };
+
+        it('shows the dict item field', (done) => {
+          appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
+            .then((response) => {
+              expect(response[0].children[0].key).toEqual('itemPayloadDict');
+              done();
+            })
+            .catch(done);
+        });
+      });
+
+      describe('when useLineItems is disabled', () => {
+        const bundle = { inputData: { useLineItems: false } };
 
         it('does not show any field for Line Items', (done) => {
           appTester(App.creates.generateDocument.operation.inputFields[5], bundle)
