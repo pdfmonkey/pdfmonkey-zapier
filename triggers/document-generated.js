@@ -1,5 +1,6 @@
 'use strict';
 
+const cleanupDocument = require('../lib/cleanup-document');
 const documentSample = require('../samples/document');
 const documentMapping = require('../mappings/document');
 
@@ -26,15 +27,10 @@ const getGeneratedDocuments = (z, bundle) => {
     response.throwForStatus();
 
     const results = z.JSON.parse(response.content);
-    const documents = results.document_cards.filter((doc) => doc.status == 'success');
 
-    for (let doc of documents) {
-      if (doc.meta && doc.meta.length > 2) {
-        doc.parsedMeta = JSON.parse(doc.meta);
-      }
-    }
-
-    return documents;
+    return results.document_cards
+      .filter((doc) => doc.status == 'success')
+      .map((doc) => cleanupDocument(doc, z));
   });
 };
 

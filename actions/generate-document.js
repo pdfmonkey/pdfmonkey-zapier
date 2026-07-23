@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const cleanupDocument = require('../lib/cleanup-document');
 const documentCardSample = require('../samples/document-card');
 const documentCardMapping = require('../mappings/document-card');
 
@@ -70,19 +71,6 @@ const lineItemsPayloadInput = (z, bundle) => {
   }
 
   return [];
-};
-
-const cleanupDocument = (document, z) => {
-  if (document.meta && document.meta.length > 2) {
-    try {
-      document.parsedMeta = z.JSON.parse(document.meta);
-      delete document.parsedMeta._webhook_channel;
-    } catch (error) {
-      z.console.log('Error parsing meta:', error);
-    }
-  }
-
-  return document;
 };
 
 const deleteRestHook = async (z, secretKey, restHookId) => {
@@ -230,7 +218,7 @@ const resumeDocument = async (z, bundle) => {
   // the user can route downstream themselves.
   const result = z.JSON.parse(bundle.rawRequest.content);
 
-  return cleanupDocument(result.document, z);
+  return cleanupDocument(result.document, z, { stripWebhookChannel: true });
 };
 
 module.exports = {
