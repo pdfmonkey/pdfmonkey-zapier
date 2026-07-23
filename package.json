@@ -2,12 +2,15 @@
   "name": "pdfmonkey",
   "version": "4.1.2",
   "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "jest --testTimeout 10000",
     "test-watch": "jest --testTimeout 10000 --watch"
   },
   "dependencies": {
-    "zapier-platform-core": "16.3.1"
+    "zapier-platform-core": "19.0.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",
