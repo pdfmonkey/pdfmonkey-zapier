@@ -4,14 +4,22 @@ const crypto = require('crypto');
 const documentCardSample = require('../samples/document-card');
 const documentCardMapping = require('../mappings/document-card');
 
+// Boolean fields deliver `true`/`false`; Zaps saved before these fields became
+// booleans used a 'Yes'/'No' dropdown. Accept both so existing Tasks keep working.
+const isEnabled = (value) => value === true || value === 'Yes';
+
+// Native `json` fields arrive parsed, but a field mapped to a single string
+// value can still come through as text — normalize either shape to an object.
+const asObject = (value) => (typeof value === 'string' ? JSON.parse(value) : value || {});
+
 const payloadInput = (z, bundle) => {
-  if (bundle.inputData.realJson === 'Yes') {
+  if (isEnabled(bundle.inputData.realJson)) {
     return [
       {
         key: 'payload',
         label: 'Data for the Document (JSON Payload)',
         helpText: 'Use the JSON format `{ "firstname": "Jane", "lastname": "Doe" }`.',
-        type: 'text'
+        type: 'json'
       }
     ];
   }
@@ -26,15 +34,15 @@ const payloadInput = (z, bundle) => {
 };
 
 const lineItemsPayloadInput = (z, bundle) => {
-  if (bundle.inputData.useLineItems === 'Yes') {
+  if (isEnabled(bundle.inputData.useLineItems)) {
     let fields;
 
-    if (bundle.inputData.realJson === 'Yes') {
+    if (isEnabled(bundle.inputData.realJson)) {
       fields = [
         {
           key: 'itemPayload',
           label: 'Dynamic Data for an Item (JSON Payload)',
-          type: 'text',
+          type: 'json',
           helpText:
             'JSON Payload **for a single item**. Format: `{ "name": "Cool product", "price": 123.45 }`. Available as `lineItems` in your PDFMonkey Template.',
           default: '{\n  "name": "Cool product",\n  "price": 123.45\n}'
@@ -101,13 +109,13 @@ const generateDocument = async (z, bundle) => {
   let filename = bundle.inputData.filename;
   let meta = bundle.inputData.meta || {};
   let lineItems = bundle.inputData.lineItems || [];
-  let useLineItems = bundle.inputData.useLineItems === 'Yes';
+  let useLineItems = isEnabled(bundle.inputData.useLineItems);
 
-  if (bundle.inputData.realJson === 'Yes') {
-    payload = JSON.parse(bundle.inputData.payload);
+  if (isEnabled(bundle.inputData.realJson)) {
+    payload = asObject(bundle.inputData.payload);
 
     if (useLineItems) {
-      payload.lineItems = lineItems.map((item) => JSON.parse(item.itemPayload));
+      payload.lineItems = lineItems.map((item) => asObject(item.itemPayload));
     }
   } else {
     payload = bundle.inputData.payloadDict || {};
@@ -256,23 +264,19 @@ module.exports = {
       {
         key: 'realJson',
         label: 'Use a custom JSON structure',
-        type: 'string',
-        choices: ['Yes', 'No'],
+        type: 'boolean',
         helpText:
-          'Select Yes if you prefer writing a complete JSON payload instead of a basic Zapier mapping for the Document data.',
-        default: 'No',
-        required: true,
+          'Enable to write a complete JSON payload instead of a basic Zapier mapping for the Document data.',
+        default: 'false',
         altersDynamicFields: true
       },
       payloadInput,
       {
         key: 'useLineItems',
         label: 'Add Line Items',
-        type: 'string',
-        choices: ['Yes', 'No'],
-        helpText: 'Select Yes to add data for Line Items (in an invoice for instance).',
-        default: 'No',
-        required: false,
+        type: 'boolean',
+        helpText: 'Enable to add data for Line Items (in an invoice for instance).',
+        default: 'false',
         altersDynamicFields: true
       },
       lineItemsPayloadInput,
