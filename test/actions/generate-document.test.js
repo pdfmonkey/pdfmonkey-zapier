@@ -112,13 +112,13 @@ describe('Actions::GenerateDocument', () => {
     describe('with data as real JSON', () => {
       const captured = mockGeneration();
 
-      // Native `json` fields hand `perform` an already-parsed object.
+      // The `code` field delivers the payload as a raw JSON string.
       const bundle = {
         ...bundleWithAuth(),
         inputData: {
           workspaceId: WORKSPACE_ID,
           documentTemplateId: TEMPLATE_ID,
-          payload: { name: 'Jane Doe' },
+          payload: '{ "name": "Jane Doe" }',
           realJson: true
         }
       };
@@ -142,10 +142,10 @@ describe('Actions::GenerateDocument', () => {
         inputData: {
           workspaceId: WORKSPACE_ID,
           documentTemplateId: TEMPLATE_ID,
-          payload: { name: 'Jane Doe' },
+          payload: '{ "name": "Jane Doe" }',
           realJson: true,
           useLineItems: true,
-          lineItems: [{ itemPayload: { name: 'Line Item 1' } }, { itemPayload: { name: 'Line Item 2' } }]
+          lineItems: [{ itemPayload: '{ "name": "Line Item 1" }' }, { itemPayload: '{ "name": "Line Item 2" }' }]
         }
       };
 
@@ -163,8 +163,8 @@ describe('Actions::GenerateDocument', () => {
       });
     });
 
-    // Zaps saved before these inputs became native boolean/json fields still
-    // send 'Yes' and stringified JSON; the tolerant helpers must accept both.
+    // Zaps saved before these inputs became native boolean fields still send
+    // 'Yes' for the toggles; the tolerant helpers must accept them.
     describe('with legacy string inputs', () => {
       const captured = mockGeneration();
 
@@ -390,7 +390,7 @@ describe('Actions::GenerateDocument', () => {
           appTester(App.creates.generateDocument.operation.inputFields[3], bundle)
             .then((response) => {
               expect(response[0].key).toEqual('payload');
-              expect(response[0].type).toEqual('json');
+              expect(response[0].type).toEqual('code');
               done();
             })
             .catch(done);
