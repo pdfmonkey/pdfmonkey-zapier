@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 5.0.0 (2026-07-26)
 
 - (Chore) Upgrading `zapier-platform-core` from 16.3.1 to 19.0.0 and pinning the Node engine to 20+
 - (Improvement) Switching the Generate Document toggles to native boolean checkboxes and the raw-JSON inputs to the native `json` field type (validated by Zapier); legacy `Yes`/string values from existing Zaps are still accepted
