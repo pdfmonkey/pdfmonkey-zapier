@@ -1,5 +1,6 @@
 'use strict';
 
+const cleanupDocument = require('../lib/cleanup-document');
 const documentSample = require('../samples/document');
 const documentMapping = require('../mappings/document');
 
@@ -12,7 +13,7 @@ const subscribeHook = async (z, bundle) => {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${bundle.authData.secretKey}`
     },
-    body: JSON.stringify({
+    body: {
       rest_hook: {
         document_template_ids: bundle.inputData.documentTemplateId || [],
         event: 'documents.generation.success',
@@ -20,7 +21,7 @@ const subscribeHook = async (z, bundle) => {
         url: bundle.targetUrl,
         workspace_id: bundle.inputData.workspaceId
       }
-    })
+    }
   });
 
   response.throwForStatus();
@@ -46,22 +47,9 @@ const unsubscribeHook = async (z, bundle) => {
 };
 
 const performHook = (z, bundle) => {
-  const result = JSON.parse(bundle.rawRequest.content);
-  const document = cleanupDocument(result.document, z);
+  const result = z.JSON.parse(bundle.rawRequest.content);
 
-  return [document];
-};
-
-const cleanupDocument = (document, z) => {
-  if (document.meta && document.meta.length > 2) {
-    try {
-      document.parsedMeta = z.JSON.parse(document.meta);
-    } catch (error) {
-      z.console.log('Error parsing meta:', error);
-    }
-  }
-
-  return document;
+  return [cleanupDocument(result.document, z)];
 };
 
 const getSampleDocuments = async (z, bundle) => {

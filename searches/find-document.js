@@ -1,5 +1,6 @@
 'use strict';
 
+const cleanupDocument = require('../lib/cleanup-document');
 const documentSample = require('../samples/document');
 const documentMapping = require('../mappings/document');
 
@@ -17,15 +18,7 @@ const findDocument = (z, bundle) => {
     response.throwForStatus();
     const result = z.JSON.parse(response.content);
 
-    if (result.document.payload && result.document.payload.length > 2) {
-      result.document.parsedPayload = JSON.parse(result.document.payload);
-    }
-
-    if (result.document.meta && result.document.meta.length > 2) {
-      result.document.parsedMeta = JSON.parse(result.document.meta);
-    }
-
-    return [result.document];
+    return [cleanupDocument(result.document, z)];
   });
 };
 
