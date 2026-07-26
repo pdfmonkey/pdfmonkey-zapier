@@ -29,7 +29,7 @@ const payloadInput = (z, bundle) => {
         key: 'payload',
         label: 'Data for the Document (JSON Payload)',
         helpText: 'Use the JSON format `{ "firstname": "Jane", "lastname": "Doe" }`.',
-        type: 'json'
+        type: 'code'
       }
     ];
   }
@@ -52,7 +52,7 @@ const lineItemsPayloadInput = (z, bundle) => {
         {
           key: 'itemPayload',
           label: 'Dynamic Data for an Item (JSON Payload)',
-          type: 'json',
+          type: 'code',
           helpText:
             'JSON Payload **for a single item**. Format: `{ "name": "Cool product", "price": 123.45 }`. Available as `lineItems` in your PDFMonkey Template.',
           default: '{\n  "name": "Cool product",\n  "price": 123.45\n}'
