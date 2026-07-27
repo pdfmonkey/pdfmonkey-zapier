@@ -8,7 +8,7 @@
   "scripts": {
     "test": "jest --testTimeout 10000",
     "test-watch": "jest --testTimeout 10000 --watch",
-    "validate": "zapier validate"
+    "validate": "zapier-platform validate"
   },
   "dependencies": {
     "zapier-platform-core": "19.0.0"
