@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 5.0.1 (2026-08-26)
+
+- (Fix) Generating a real Document when testing Generate Document in the Zap editor instead of returning the static demo sample; the callback runs during Zap setup too, so the webhook round-trip is validated before the Zap goes live
+
 ## 5.0.0 (2026-07-26)
 
 - (Chore) Upgrading `zapier-platform-core` from 16.3.1 to 19.0.0 and pinning the Node engine to 20+

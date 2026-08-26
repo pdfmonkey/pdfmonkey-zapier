@@ -323,7 +323,12 @@ describe('Actions::GenerateDocument', () => {
       });
     });
 
+    // Zapier resumes callbacks while loading a sample, so the Zap editor's test
+    // must run the real thing — a canned sample would hand the user demo data
+    // and hide a broken webhook round-trip until the Zap went live.
     describe('when Zapier is loading a sample', () => {
+      const captured = mockGeneration();
+
       const bundle = {
         ...bundleWithAuth(),
         meta: { isLoadingSample: true },
@@ -334,10 +339,16 @@ describe('Actions::GenerateDocument', () => {
         }
       };
 
-      it('returns a sample without registering a webhook', (done) => {
+      it('generates a real Document like any other run', (done) => {
         appTester(App.creates.generateDocument.operation.perform, bundle)
           .then((response) => {
-            expect(response).toEqual(documentCardSample);
+            expect(response).toEqual({
+              id: 'doc-1',
+              status: 'pending',
+              _restHookId: REST_HOOK_ID
+            });
+
+            expect(captured.hook.custom_channel).toMatch(/^zapier-/);
             done();
           })
           .catch(done);

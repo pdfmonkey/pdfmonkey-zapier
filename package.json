@@ -1,6 +1,6 @@
 {
   "name": "pdfmonkey",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "main": "index.js",
   "engines": {
     "node": ">=20"

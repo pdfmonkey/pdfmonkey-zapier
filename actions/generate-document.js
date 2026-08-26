@@ -99,7 +99,12 @@ const deleteRestHook = async (z, secretKey, restHookId) => {
 // Instead of polling until it's done, we register a per-run webhook scoped to a
 // unique channel, hand Zapier a callback URL, and return immediately. Zapier
 // pauses the Task until PDFMonkey notifies that channel, and `resumeDocument`
-// picks it back up.
+// picks it back up, removing the webhook on its way out.
+//
+// This runs unconditionally, `bundle.meta.isLoadingSample` included: Zapier
+// resumes callbacks while loading a sample, so testing the step in the Zap
+// editor generates a real Document AND proves the whole webhook round-trip
+// works before the Zap goes live.
 const generateDocument = async (z, bundle) => {
   let payload;
 
@@ -124,12 +129,6 @@ const generateDocument = async (z, bundle) => {
 
   if (!meta._filename && typeof filename === 'string') {
     meta._filename = filename;
-  }
-
-  // Registering a callback while Zapier loads a sample would leave the Task
-  // hanging, so return a static sample synchronously instead.
-  if (bundle.meta && bundle.meta.isLoadingSample) {
-    return documentCardSample;
   }
 
   const callbackUrl = z.generateCallbackUrl();
