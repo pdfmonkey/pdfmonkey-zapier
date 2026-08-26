@@ -3,6 +3,7 @@
 ## Unreleased
 
 - (Fix) Generating a real Document when testing Generate Document in the Zap editor instead of returning the static demo sample. The Zap editor never resumes a callback during setup, so the sample run waits for the generation by polling — budgeted at 25s, within Zapier's 30s `perform` limit — and returns the finished DocumentCard; live Tasks keep using the callback
+- (Chore) Upgrading `zapier-platform-core` from 19.0.0 to 19.1.0
 
 ## 5.0.0 (2026-07-26)
 
