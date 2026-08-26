@@ -323,7 +323,35 @@ describe('Actions::GenerateDocument', () => {
       });
     });
 
+    // The Zap editor never pauses a test for a callback, so the sample run must
+    // generate a real Document AND wait for it — otherwise the user is handed a
+    // `pending` Document with no download URL to map downstream.
     describe('when Zapier is loading a sample', () => {
+      const captured = {};
+
+      beforeEach(() => {
+        captured.document = null;
+
+        pdfmonkeyApi
+          .post('/api/v1/documents', (body) => {
+            captured.document = body.document;
+            return true;
+          })
+          .reply(201, { document: { id: 'doc-1', status: 'pending' } });
+
+        pdfmonkeyApi.get('/api/v1/documents/doc-1').reply(200, {
+          document: {
+            ...documentCardSample,
+            id: 'doc-1',
+            checksum: 'abc',
+            payload: '{"name":"Jane Doe"}',
+            preview_url: 'https://api.pdfmonkey.io/pdf-preview/minimal',
+            meta: '{"_filename":"demo-document.pdf","_webhook_channel":"zapier-1"}',
+            status: 'success'
+          }
+        });
+      });
+
       const bundle = {
         ...bundleWithAuth(),
         meta: { isLoadingSample: true },
@@ -334,14 +362,61 @@ describe('Actions::GenerateDocument', () => {
         }
       };
 
-      it('returns a sample without registering a webhook', (done) => {
+      it('generates a real Document and waits for it, without a webhook', (done) => {
         appTester(App.creates.generateDocument.operation.perform, bundle)
           .then((response) => {
-            expect(response).toEqual(documentCardSample);
+            expect(captured.document).not.toBeNull();
+            expect(response.id).toEqual('doc-1');
+            expect(response.status).toEqual('success');
+            expect(response.download_url).toEqual(documentCardSample.download_url);
+
+            // The shape must match the DocumentCard a live callback delivers.
+            expect(response.parsedMeta).toEqual({ _filename: 'demo-document.pdf' });
+            expect(response.checksum).toBeUndefined();
+            expect(response.payload).toBeUndefined();
+            expect(response.parsedPayload).toBeUndefined();
+            expect(response.preview_url).toBeUndefined();
+            expect(response._restHookId).toBeUndefined();
             done();
           })
           .catch(done);
       });
+    });
+
+    describe('when the sample Document is still generating', () => {
+      beforeEach(() => {
+        pdfmonkeyApi
+          .post('/api/v1/documents')
+          .reply(201, { document: { id: 'doc-1', status: 'pending' } });
+
+        pdfmonkeyApi
+          .get('/api/v1/documents/doc-1')
+          .reply(200, { document: { id: 'doc-1', status: 'pending', meta: '{}' } });
+
+        pdfmonkeyApi
+          .get('/api/v1/documents/doc-1')
+          .reply(200, { document: { id: 'doc-1', status: 'failure', failure_cause: 'boom', meta: '{}' } });
+      });
+
+      const bundle = {
+        ...bundleWithAuth(),
+        meta: { isLoadingSample: true },
+        inputData: {
+          workspaceId: WORKSPACE_ID,
+          documentTemplateId: TEMPLATE_ID,
+          payloadDict: {}
+        }
+      };
+
+      it('keeps polling until the Document settles', (done) => {
+        appTester(App.creates.generateDocument.operation.perform, bundle)
+          .then((response) => {
+            expect(response.status).toEqual('failure');
+            expect(response.failure_cause).toEqual('boom');
+            done();
+          })
+          .catch(done);
+      }, 10000);
     });
   });
 

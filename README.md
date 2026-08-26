@@ -17,8 +17,10 @@ inside a Zap, and react when a document finishes generating.
   generation completes. Because generation can take longer than Zapier's ~30 s
   synchronous limit, the action runs asynchronously: it registers a per-run,
   channel-scoped webhook, hands Zapier a callback URL, and resumes the Task when
-  PDFMonkey notifies that the document is ready. Data can be provided either as a
-  visual Zapier mapping or as a raw JSON payload, with optional line items.
+  PDFMonkey notifies that the document is ready. Testing the step in the Zap
+  editor generates a real document too, but waits for it by polling: the editor
+  never resumes a callback during setup. Data can be provided either as a visual
+  Zapier mapping or as a raw JSON payload, with optional line items.
 - **Delete Document** — deletes a document by ID.
 
 ### Searches

@@ -82,6 +82,76 @@ const lineItemsPayloadInput = (z, bundle) => {
   return [];
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Zapier gives a `perform` 30 seconds total, so budget the wait on wall-clock
+// rather than a poll count: the count alone ignores request latency and would
+// overrun on a slow network.
+const POLL_INTERVAL = 1000;
+const POLL_BUDGET = 25000;
+
+const fetchDocument = async (z, secretKey, documentId) => {
+  const response = await z.request({
+    url: `https://api.pdfmonkey.io/api/v1/documents/${documentId}`,
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${secretKey}`
+    }
+  });
+
+  response.throwForStatus();
+
+  return z.JSON.parse(response.content).document;
+};
+
+const isSettled = (document) => document.status === 'success' || document.status === 'failure';
+
+const waitForDocument = async (z, secretKey, documentId) => {
+  const deadline = Date.now() + POLL_BUDGET;
+  let document;
+
+  do {
+    await sleep(POLL_INTERVAL);
+    document = await fetchDocument(z, secretKey, documentId);
+  } while (!isSettled(document) && Date.now() < deadline);
+
+  if (!isSettled(document)) {
+    z.console.log(`Document ${documentId} was still generating after ${POLL_BUDGET}ms.`);
+  }
+
+  // A Document carries more than the DocumentCard a callback delivers. Drop the
+  // extras so the sample matches the shape live Tasks will actually receive.
+  delete document.checksum;
+  delete document.payload;
+  delete document.preview_url;
+
+  return cleanupDocument(document, z, { stripWebhookChannel: true });
+};
+
+const createDocument = async (z, bundle, meta, payload) => {
+  const response = await z.request({
+    url: 'https://api.pdfmonkey.io/api/v1/documents',
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${bundle.authData.secretKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: {
+      document: {
+        document_template_id: bundle.inputData.documentTemplateId,
+        meta: JSON.stringify(meta),
+        payload: JSON.stringify(payload),
+        status: 'pending'
+      }
+    }
+  });
+
+  response.throwForStatus();
+
+  return z.JSON.parse(response.content).document;
+};
+
 const deleteRestHook = async (z, secretKey, restHookId) => {
   const response = await z.request({
     url: `https://api.pdfmonkey.io/api/v1/rest_hooks/${restHookId}`,
@@ -96,10 +166,15 @@ const deleteRestHook = async (z, secretKey, restHookId) => {
 };
 
 // Generating a Document can take longer than Zapier's ~30s synchronous limit.
-// Instead of polling until it's done, we register a per-run webhook scoped to a
-// unique channel, hand Zapier a callback URL, and return immediately. Zapier
-// pauses the Task until PDFMonkey notifies that channel, and `resumeDocument`
-// picks it back up.
+// On a live Task, instead of polling until it's done, we register a per-run
+// webhook scoped to a unique channel, hand Zapier a callback URL, and return
+// immediately. Zapier pauses the Task until PDFMonkey notifies that channel,
+// and `resumeDocument` picks it back up, removing the webhook on its way out.
+//
+// The Zap editor is the exception: it never pauses a test for a callback, so
+// the user would only ever see a `pending` Document. There we generate a real
+// Document too — proving the template and payload work — but wait for it by
+// polling, which fits within the editor's synchronous run.
 const generateDocument = async (z, bundle) => {
   let payload;
 
@@ -126,10 +201,10 @@ const generateDocument = async (z, bundle) => {
     meta._filename = filename;
   }
 
-  // Registering a callback while Zapier loads a sample would leave the Task
-  // hanging, so return a static sample synchronously instead.
   if (bundle.meta && bundle.meta.isLoadingSample) {
-    return documentCardSample;
+    const document = await createDocument(z, bundle, meta, payload);
+
+    return waitForDocument(z, bundle.authData.secretKey, document.id);
   }
 
   const callbackUrl = z.generateCallbackUrl();
@@ -166,28 +241,10 @@ const generateDocument = async (z, bundle) => {
   hookResponse.throwForStatus();
   const restHookId = z.JSON.parse(hookResponse.content).rest_hook.id;
 
-  let createResponse;
+  let document;
 
   try {
-    createResponse = await z.request({
-      url: 'https://api.pdfmonkey.io/api/v1/documents',
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${bundle.authData.secretKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: {
-        document: {
-          document_template_id: bundle.inputData.documentTemplateId,
-          meta: JSON.stringify(meta),
-          payload: JSON.stringify(payload),
-          status: 'pending'
-        }
-      }
-    });
-
-    createResponse.throwForStatus();
+    document = await createDocument(z, bundle, meta, payload);
   } catch (error) {
     // The webhook is already registered but no Document will ever notify it.
     // Drop the orphaned hook before surfacing the original failure.
@@ -199,8 +256,6 @@ const generateDocument = async (z, bundle) => {
 
     throw error;
   }
-
-  const document = z.JSON.parse(createResponse.content).document;
 
   return {
     id: document.id,
