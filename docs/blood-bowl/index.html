@@ -1,0 +1,633 @@
+<title>Aide de Jeu Blood Bowl</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Pirata+One&family=Spectral:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap">
+<style>
+  :root{
+    --bg:#E9EDE4; --paper:#F8F9F4; --paper-2:#F1F3EA;
+    --ink:#15201A; --muted:#5C6C60; --line:#D0D8C9;
+    --brass:#8A5E10; --brass-soft:#EFE2C4;
+    --blood:#93211A; --blood-soft:#F6DFDC;
+    --turf:#20573D; --turf-soft:#DDE9DF;
+    --shadow:0 1px 0 rgba(21,32,26,.06), 0 8px 24px -18px rgba(21,32,26,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0B1710; --paper:#122019; --paper-2:#16271E;
+      --ink:#E7EDE5; --muted:#94A797; --line:#25382C;
+      --brass:#E1A93E; --brass-soft:#2E2718;
+      --blood:#E9776A; --blood-soft:#2E1918;
+      --turf:#5FBE8B; --turf-soft:#152C20;
+      --shadow:0 1px 0 rgba(0,0,0,.3), 0 10px 30px -20px #000;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B1710; --paper:#122019; --paper-2:#16271E;
+    --ink:#E7EDE5; --muted:#94A797; --line:#25382C;
+    --brass:#E1A93E; --brass-soft:#2E2718;
+    --blood:#E9776A; --blood-soft:#2E1918;
+    --turf:#5FBE8B; --turf-soft:#152C20;
+    --shadow:0 1px 0 rgba(0,0,0,.3), 0 10px 30px -20px #000;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Spectral", Georgia, "Times New Roman", serif;
+    font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.ui{font-family:"Oswald", "Arial Narrow", Impact, sans-serif; font-weight:500; text-wrap:balance}
+  .mono{font-family:"Space Mono", ui-monospace, "SFMono-Regular", Menlo, monospace}
+
+  /* ---------- Bandeau ---------- */
+  header{
+    position:sticky; top:0; z-index:20;
+    background:var(--paper); border-bottom:1px solid var(--line);
+    box-shadow:var(--shadow);
+  }
+  .bar{
+    max-width:1180px; margin:0 auto; padding:.7rem 1.25rem;
+    display:flex; flex-wrap:wrap; align-items:center; gap:.75rem 1.5rem;
+  }
+  .wordmark{display:flex; align-items:baseline; gap:.5rem; margin-right:auto}
+  .wordmark b{
+    font-family:"Pirata One", "Papyrus", serif; font-weight:400;
+    font-size:1.7rem; letter-spacing:.01em; line-height:1;
+  }
+  .wordmark span{
+    font-family:"Oswald",sans-serif; font-size:.68rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted);
+  }
+
+  .tracker{display:flex; align-items:center; gap:.6rem; flex-wrap:wrap}
+  .tracker .lbl{
+    font-family:"Oswald",sans-serif; font-size:.68rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .pips{display:flex; gap:3px}
+  .pips .sep{width:1px; background:var(--line); margin:0 5px}
+  .pip{
+    width:22px; height:26px; padding:0; cursor:pointer;
+    border:1px solid var(--line); background:var(--paper-2); color:var(--muted);
+    font-family:"Oswald",sans-serif; font-size:.78rem; border-radius:2px;
+    font-variant-numeric:tabular-nums;
+  }
+  .pip:hover{border-color:var(--brass); color:var(--ink)}
+  .pip[aria-current="true"]{background:var(--turf); border-color:var(--turf); color:var(--paper); font-weight:600}
+  .pip.past{opacity:.45}
+
+  .btn{
+    font-family:"Oswald",sans-serif; font-size:.78rem; letter-spacing:.1em;
+    text-transform:uppercase; cursor:pointer; border-radius:2px;
+    border:1px solid var(--brass); background:transparent; color:var(--brass);
+    padding:.45rem .8rem;
+  }
+  .btn:hover{background:var(--brass-soft)}
+  :focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+
+  /* ---------- Mise en page ---------- */
+  main{max-width:1180px; margin:0 auto; padding:1.5rem 1.25rem 4rem;
+       display:grid; grid-template-columns:minmax(280px,340px) 1fr; gap:1.75rem; align-items:start}
+  @media (max-width:880px){ main{grid-template-columns:1fr} }
+
+  .rail{position:sticky; top:5.2rem; display:flex; flex-direction:column; gap:1.25rem}
+  @media (max-width:880px){ .rail{position:static} }
+
+  .grouptitle{
+    font-family:"Oswald",sans-serif; font-size:.7rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted);
+    display:flex; align-items:center; gap:.6rem; margin:0 0 .55rem;
+  }
+  .grouptitle::after{content:""; flex:1; height:1px; background:var(--line)}
+
+  .list{display:flex; flex-direction:column; gap:5px}
+  .row{display:flex; align-items:stretch; gap:5px}
+  .action{
+    flex:1; text-align:left; cursor:pointer; background:var(--paper);
+    border:1px solid var(--line); border-left:3px solid var(--line);
+    padding:.55rem .7rem; border-radius:2px; color:var(--ink);
+    display:flex; align-items:center; gap:.6rem; transition:border-color .12s, background .12s;
+  }
+  .action:hover{border-left-color:var(--brass); background:var(--paper-2)}
+  .action[aria-pressed="true"]{border-left-color:var(--turf); background:var(--paper-2)}
+  .action .nom{font-family:"Oswald",sans-serif; font-size:1rem; letter-spacing:.02em; flex:1}
+  .action .cap{
+    font-family:"Space Mono",monospace; font-size:.62rem; color:var(--muted);
+    border:1px solid var(--line); border-radius:99px; padding:.05rem .4rem; white-space:nowrap;
+  }
+  .action.used{opacity:.5}
+  .action.used .nom{text-decoration:line-through}
+
+  .tick{
+    width:34px; cursor:pointer; border:1px solid var(--line); background:var(--paper);
+    border-radius:2px; color:var(--muted); font-family:"Space Mono",monospace; font-size:.8rem;
+  }
+  .tick:hover{border-color:var(--brass); color:var(--brass)}
+  .tick[aria-pressed="true"]{background:var(--blood-soft); border-color:var(--blood); color:var(--blood)}
+
+  .note{
+    font-size:.82rem; color:var(--muted); line-height:1.5;
+    border-left:2px solid var(--line); padding-left:.7rem;
+  }
+
+  /* ---------- Fiche ---------- */
+  .fiche{
+    background:var(--paper); border:1px solid var(--line); border-radius:3px;
+    padding:1.75rem 1.9rem 2rem; box-shadow:var(--shadow); min-height:60vh;
+  }
+  @media (max-width:520px){ .fiche{padding:1.25rem} }
+  .fiche.swap{animation:in .22s ease-out}
+  @keyframes in{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+  @media (prefers-reduced-motion:reduce){ .fiche.swap{animation:none} }
+
+  .eyebrow{
+    font-family:"Oswald",sans-serif; font-size:.68rem; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--brass); margin:0 0 .35rem;
+  }
+  .fiche h2{font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.05; margin:0 0 .6rem; letter-spacing:.01em}
+  .chips{display:flex; flex-wrap:wrap; gap:.4rem; margin:0 0 1.1rem}
+  .chip{
+    font-family:"Space Mono",monospace; font-size:.7rem; color:var(--muted);
+    border:1px solid var(--line); background:var(--paper-2); border-radius:2px; padding:.15rem .5rem;
+  }
+  .chip.de{color:var(--brass); border-color:var(--brass); background:var(--brass-soft)}
+  .lede{font-size:1.05rem; max-width:62ch; margin:0 0 1.6rem}
+
+  ol.etapes{list-style:none; counter-reset:e; margin:0 0 1.6rem; padding:0; max-width:64ch}
+  ol.etapes li{
+    counter-increment:e; position:relative; padding:0 0 1rem 2.6rem;
+  }
+  ol.etapes li::before{
+    content:counter(e,decimal-leading-zero); position:absolute; left:0; top:.1rem;
+    font-family:"Space Mono",monospace; font-size:.78rem; color:var(--brass);
+    border:1px solid var(--brass); border-radius:2px; padding:.05rem .3rem; line-height:1.3;
+  }
+  ol.etapes li:last-child{padding-bottom:0}
+
+  .callout{
+    border:1px solid var(--blood); background:var(--blood-soft);
+    border-radius:2px; padding:.9rem 1.1rem; margin:0 0 1.6rem; max-width:64ch;
+  }
+  .callout h3{margin:0 0 .3rem; font-size:.75rem; letter-spacing:.16em; text-transform:uppercase; color:var(--blood)}
+  .callout p{margin:0; font-size:.95rem}
+
+  .tablewrap{overflow-x:auto; margin:0 0 1.6rem; border:1px solid var(--line); border-radius:2px}
+  table{border-collapse:collapse; width:100%; font-size:.92rem; min-width:420px}
+  caption{
+    text-align:left; padding:.6rem .9rem; background:var(--paper-2); border-bottom:1px solid var(--line);
+    font-family:"Oswald",sans-serif; font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+  }
+  th,td{text-align:left; padding:.55rem .9rem; border-bottom:1px solid var(--line); vertical-align:top}
+  tbody tr:last-child td{border-bottom:0}
+  th{font-family:"Oswald",sans-serif; font-weight:500; white-space:nowrap; width:1%}
+
+  .voir{display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; padding-top:1.2rem; border-top:1px solid var(--line)}
+  .voir .lbl{font-family:"Oswald",sans-serif; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-right:.3rem}
+  .lien{
+    cursor:pointer; border:1px solid var(--line); background:var(--paper-2); color:var(--ink);
+    font-family:"Oswald",sans-serif; font-size:.8rem; padding:.3rem .6rem; border-radius:2px;
+  }
+  .lien:hover{border-color:var(--brass); color:var(--brass)}
+  .inl{
+    background:none; border:0; padding:0; cursor:pointer; color:var(--brass); font:inherit;
+    border-bottom:1px solid currentColor;
+  }
+  .inl:hover{background:var(--brass-soft)}
+
+  .verif{
+    font-family:"Space Mono",monospace; font-size:.62rem; color:var(--blood);
+    border:1px dashed var(--blood); border-radius:2px; padding:0 .3rem; margin-left:.3rem; white-space:nowrap;
+  }
+
+  footer{
+    max-width:70ch; margin:0 auto; padding:0 1.25rem 3rem;
+    color:var(--muted); font-size:.82rem;
+  }
+</style>
+
+<header>
+  <div class="bar">
+    <div class="wordmark"><b>Blood Bowl</b><span>Aide de jeu</span></div>
+    <div class="tracker">
+      <span class="lbl" id="tour-lbl">Mi-temps 1 &middot; Tour 1</span>
+      <div class="pips" id="pips" role="group" aria-label="Tour de jeu"></div>
+      <button class="btn" id="fin-tour">Fin de tour</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="rail">
+    <div>
+      <p class="grouptitle">Actions du tour</p>
+      <div class="list" id="liste-actions"></div>
+    </div>
+    <div>
+      <p class="grouptitle">Procédures</p>
+      <div class="list" id="liste-proc"></div>
+    </div>
+    <p class="note">Un joueur = une action par tour d'équipe. Coche la case rouge quand l'action limitée est consommée&nbsp;; «&nbsp;Fin de tour&nbsp;» remet tout à zéro.</p>
+  </div>
+
+  <article class="fiche" id="fiche" aria-live="polite"></article>
+</main>
+
+<footer>
+  <p><strong>Brouillon v1</strong> — contenu rédigé de mémoire d'après Blood Bowl (Seconde saison, 2020). Les points marqués <span class="verif">à vérifier</span> doivent être confirmés sur les pages de règles ; le reste sera recalé sur les captures fournies.</p>
+</footer>
+
+<script>
+const V = ' <span class="verif">à vérifier</span>';
+
+const FICHES = {
+  /* ------------------- ACTIONS ------------------- */
+  mouvement: {
+    grp:'action', nom:'Mouvement', limite:'Illimité', cap:null,
+    chips:['Aucun jet obligatoire'], de:null,
+    lede:"L'action de base : le joueur se déplace jusqu'à sa caractéristique de Mouvement (MA), case par case.",
+    etapes:[
+      "Le joueur doit être <strong>Debout</strong>. S'il est Au sol, il commence par {{releve|Se relever}} (3 cases de MA).",
+      "Il se déplace d'une case à la fois, en ligne droite ou en diagonale, jusqu'à un total de cases égal à son <strong>MA</strong>.",
+      "Chaque fois qu'il quitte une case contrôlée par la zone de tacle d'un adversaire Debout, il effectue une {{esquive|Esquive}}.",
+      "S'il entre sur la case du ballon, il tente immédiatement de le {{ramassage|ramasser}}.",
+      "Une fois son MA épuisé, il peut tenter jusqu'à <strong>2 {{ruee|Ruées}}</strong> pour avancer d'une case de plus à chaque fois.",
+      "L'action se termine dès que le joueur arrête son déplacement, tombe, ou rate un jet."
+    ],
+    voir:['ruee','esquive','ramassage','releve']
+  },
+
+  blocage: {
+    grp:'action', nom:'Blocage', limite:'Illimité', cap:null,
+    chips:['Dés de blocage'], de:'D-Blocage',
+    lede:"Le joueur attaque au corps à corps un adversaire Debout adjacent. Aucun déplacement.",
+    etapes:[
+      "Choisir la cible : un adversaire <strong>Debout</strong> et adjacent. Le bloqueur doit être Debout.",
+      "Comparer la <strong>Force (FO)</strong> des deux joueurs, en ajoutant les assistances.",
+      "Déterminer le nombre de dés de blocage (table ci-dessous) et les lancer.",
+      "Le joueur qui a le droit de choisir sélectionne un résultat et l'applique.",
+      "En cas de poussée, la cible est repoussée d'une case ; le bloqueur peut la <strong>suivre</strong> gratuitement.",
+      "Tout joueur mis au sol subit un {{armure|jet d'armure}}."
+    ],
+    tables:[
+      { caption:'Nombre de dés de blocage',
+        rows:[
+          ['FO égales','1 dé, choisi par l\'attaquant'],
+          ['Un joueur plus fort','2 dés, choisis par le plus fort'],
+          ['Un joueur plus du double','3 dés, choisis par le plus fort']
+        ]},
+      { caption:'Résultats des dés de blocage',
+        rows:[
+          ['Attaquant au sol','Le bloqueur est mis au sol → jet d\'armure → <strong>Turnover</strong>.'],
+          ['Les deux au sol','Les deux joueurs sont mis au sol (jet d\'armure chacun). La compétence <em>Blocage</em> permet d\'ignorer ce résultat pour soi.'],
+          ['Repoussé','La cible recule d\'une case, toujours Debout.'],
+          ['Défenseur chancelle','La cible est repoussée et mise au sol. Si elle a <em>Esquive</em> et que le bloqueur n\'a pas <em>Tacle</em>, elle est seulement repoussée.'],
+          ['Défenseur au sol','La cible est repoussée puis mise au sol → jet d\'armure.']
+        ]}
+    ],
+    assist:"<strong>Assistances :</strong> +1 FO par coéquipier Debout adjacent à l'adversaire concerné, à condition qu'il ne soit lui-même marqué par aucun autre adversaire Debout.",
+    voir:['armure','turnover','blitz']
+  },
+
+  blitz: {
+    grp:'action', nom:'Blitz', limite:'1 par tour d\'équipe', cap:'1/tour',
+    chips:['Mouvement + Blocage'], de:'D6 + D-Blocage',
+    lede:"La seule action qui combine déplacement et blocage. Une seule par tour d'équipe.",
+    etapes:[
+      "Le joueur effectue un {{mouvement|Mouvement}} normal (MA + jusqu'à 2 {{ruee|Ruées}}).",
+      "À <strong>n'importe quel moment</strong> de ce déplacement, il peut effectuer un {{blocage|Blocage}}.",
+      "Le blocage coûte <strong>1 case de mouvement</strong> : il faut donc qu'il reste au moins une case (Ruée comprise).",
+      "S'il repousse sa cible, il peut la suivre — ce déplacement de poursuite est gratuit.",
+      "Il peut ensuite continuer son déplacement avec les cases restantes."
+    ],
+    voir:['mouvement','blocage','ruee']
+  },
+
+  passe: {
+    grp:'action', nom:'Passe', limite:'1 par tour d\'équipe', cap:'1/tour',
+    chips:['Mouvement possible avant'], de:'D6 vs PA',
+    lede:"Le porteur du ballon le lance vers une case cible. Une seule passe par tour d'équipe.",
+    etapes:[
+      "Le joueur peut d'abord effectuer un {{mouvement|Mouvement}} complet, puis lancer (ou lancer sans bouger).",
+      "Désigner la case cible et mesurer la portée avec la réglette : <strong>Rapide +1, Courte 0, Longue −1, Bombe longue −2</strong>.",
+      "Appliquer <strong>−1 par adversaire</strong> dont la zone de tacle marque le lanceur.",
+      "Jeter <strong>1D6</strong> et comparer à la <strong>Précision (PA)</strong> du lanceur : résultat modifié ≥ PA = passe précise.",
+      "Passe précise : le joueur ciblé tente une {{reception|Réception}} avec +1.",
+      "Échec sans fumble = <strong>passe imprécise</strong> : le ballon dévie de 3 cases (3 jets de D8) depuis la case visée, puis {{rebond|rebondit}}." + V
+    ],
+    echec:"<strong>Fumble</strong> (1 naturel, ou résultat modifié ≤ 1) : le ballon {{rebond|rebondit}} depuis la case du lanceur → <strong>Turnover</strong>. De même, si le ballon touche le sol sans être rattrapé par un coéquipier, c'est un Turnover.",
+    voir:['reception','rebond','turnover']
+  },
+
+  transmission: {
+    grp:'action', nom:'Transmission', limite:'1 par tour d\'équipe', cap:'1/tour',
+    chips:['Hand-off'], de:'D6 vs AG',
+    lede:"Le porteur donne le ballon à un coéquipier adjacent : aucun jet de passe, mais une réception.",
+    etapes:[
+      "Le joueur peut d'abord effectuer un {{mouvement|Mouvement}} complet.",
+      "Il donne le ballon à un coéquipier <strong>Debout et adjacent</strong>. Aucune portée, aucun jet de PA.",
+      "Le receveur effectue une {{reception|Réception}} avec un modificateur de <strong>+1</strong>.",
+      "Réception réussie : le coéquipier porte le ballon, son action est intacte s'il n'a pas encore joué."
+    ],
+    echec:"Réception ratée : le ballon {{rebond|rebondit}} depuis la case du receveur → <strong>Turnover</strong> dès qu'il touche le sol.",
+    voir:['reception','rebond','turnover']
+  },
+
+  agression: {
+    grp:'action', nom:'Agression', limite:'1 par tour d\'équipe', cap:'1/tour',
+    chips:['Cible Au sol ou Sonnée'], de:'2D6',
+    lede:"Un coup de pied bien placé sur un adversaire à terre — si l'arbitre le voit, c'est l'expulsion.",
+    etapes:[
+      "Le joueur peut d'abord effectuer un {{mouvement|Mouvement}} complet.",
+      "Il agresse un adversaire <strong>adjacent, Au sol ou Sonné</strong>.",
+      "Effectuer un {{armure|jet d'armure}} modifié par les assistances : <strong>+1 par assistance offensive, −1 par assistance défensive</strong>." + V,
+      "Si l'armure est percée, effectuer le {{armure|jet de blessure}} habituel.",
+      "L'agression ne met pas fin au tour si l'arbitre ne voit rien."
+    ],
+    echec:"<strong>Double</strong> sur le jet d'armure ou de blessure : l'arbitre a tout vu, le joueur est <strong>expulsé</strong> et le tour de l'équipe se termine immédiatement (Turnover). Le coach peut tenter de <em>contester la décision</em>." + V,
+    voir:['armure','turnover']
+  },
+
+  lancer: {
+    grp:'action', nom:'Lancer de coéquipier', limite:'1 par tour d\'équipe', cap:'1/tour',
+    chips:['Compétences requises'], de:'D6 vs PA',
+    lede:"Un gros bras projette un petit coéquipier — le plus souvent vers la zone d'en-but adverse.",
+    etapes:[
+      "Le lanceur doit avoir la compétence <em>Lancer de coéquipier</em> ; le joueur lancé doit avoir <em>Petite taille</em> (Costaud).",
+      "Le lanceur peut d'abord effectuer un {{mouvement|Mouvement}} complet.",
+      "Il lance un coéquipier adjacent à portée <strong>Rapide ou Courte</strong> uniquement.",
+      "Le lancer est <strong>toujours imprécis</strong> : jeter 1D6 vs PA seulement pour savoir s'il y a fumble, puis dévier de 3 cases depuis la case visée." + V,
+      "Le joueur lancé effectue un <strong>jet d'atterrissage</strong> (1D6 vs AG, −1 par zone de tacle adverse sur sa case d'arrivée)." + V,
+      "Atterrissage raté : il est mis au sol → {{armure|jet d'armure}} → Turnover. S'il portait le ballon, celui-ci {{rebond|rebondit}}."
+    ],
+    voir:['rebond','armure','turnover']
+  },
+
+  speciales: {
+    grp:'action', nom:'Actions spéciales', limite:'Selon la compétence', cap:'skill',
+    chips:['Accordées par une compétence'], de:null,
+    lede:"Certaines compétences remplacent une action classique par une action spéciale. Elles suivent les mêmes limites de une par tour d'équipe que l'action qu'elles remplacent.",
+    tables:[
+      { caption:'Actions spéciales courantes' + V,
+        rows:[
+          ['Coup de dague','Remplace un Blocage : jet d\'armure direct sur la cible, sans dés de blocage.'],
+          ['Tronçonneuse','Remplace un Blocage : jet d\'armure avec un gros bonus, avec risque de se blesser soi-même.'],
+          ['Regard hypnotique','Remplace l\'action : annule la zone de tacle d\'un adversaire adjacent.'],
+          ['Blocage multiple','Remplace un Blocage : bloquer deux adversaires adjacents en même temps.'],
+          ['Lancer de bombe','Compte comme l\'action de Passe de l\'équipe pour ce tour.']
+        ]}
+    ],
+    voir:['blocage','passe']
+  },
+
+  /* ------------------- PROCÉDURES ------------------- */
+  releve: {
+    grp:'proc', nom:'Se relever', chips:['Coût : 3 cases de MA'], de:'D6 si MA ≤ 2',
+    lede:"Un joueur Au sol peut se relever au début de son action.",
+    etapes:[
+      "Le joueur dépense <strong>3 cases de son MA</strong> puis agit normalement avec les cases restantes.",
+      "Si son MA est de <strong>2 ou moins</strong>, jeter 1D6 : sur <strong>4+</strong> il se relève mais a épuisé tout son mouvement ; sur 1-3 l'action est perdue.",
+      "Un joueur <strong>Sonné</strong> ne peut pas se relever : il est retourné Au sol à la fin du tour de son équipe."
+    ],
+    voir:['mouvement']
+  },
+
+  ruee: {
+    grp:'proc', nom:'Ruée', chips:['Maximum 2 par action'], de:'D6 · 2+',
+    lede:"Aller plus loin que son Mouvement, au risque de s'étaler.",
+    etapes:[
+      "Après avoir épuisé son MA, le joueur peut avancer d'une case supplémentaire.",
+      "Jeter <strong>1D6</strong> : <strong>2+</strong> réussi, il entre dans la case.",
+      "Il peut recommencer une seconde fois — jamais plus de <strong>2 Ruées</strong> par action.",
+      "Si la case quittée est marquée par un adversaire, l'{{esquive|Esquive}} se fait en plus de la Ruée."
+    ],
+    echec:"Sur un <strong>1</strong> : le joueur tombe dans la case de destination → {{armure|jet d'armure}} → <strong>Turnover</strong>.",
+    voir:['esquive','armure','turnover']
+  },
+
+  esquive: {
+    grp:'proc', nom:'Esquive', chips:['Sortir d\'une zone de tacle'], de:'D6 vs AG',
+    lede:"Quitter une case contrôlée par au moins un adversaire Debout demande un jet d'Esquive.",
+    etapes:[
+      "Jeter <strong>1D6</strong> et ajouter <strong>+1</strong> (bonus d'esquive).",
+      "Appliquer <strong>−1 par zone de tacle adverse</strong> qui contrôle la <strong>case d'arrivée</strong>.",
+      "Réussite si le résultat modifié est ≥ à l'<strong>Agilité (AG)</strong> du joueur.",
+      "Un <strong>1 naturel</strong> échoue toujours ; un <strong>6 naturel</strong> réussit toujours.",
+      "La compétence <em>Esquive</em> permet de relancer une fois par action ; sinon, une relance d'équipe est possible."
+    ],
+    echec:"Le joueur tombe dans la <strong>case d'arrivée</strong> → {{armure|jet d'armure}} → <strong>Turnover</strong>.",
+    voir:['ruee','armure','turnover']
+  },
+
+  ramassage: {
+    grp:'proc', nom:'Ramasser le ballon', chips:['En entrant sur la case du ballon'], de:'D6 vs AG',
+    lede:"Le ballon au sol ne se ramasse jamais tout seul.",
+    etapes:[
+      "Jeter <strong>1D6</strong>, <strong>−1 par zone de tacle adverse</strong> qui contrôle la case du ballon.",
+      "Réussite si le résultat modifié est ≥ à l'<strong>AG</strong> du joueur. Un 1 naturel échoue toujours.",
+      "Réussi : le joueur porte le ballon et peut continuer son action."
+    ],
+    echec:"Le ballon {{rebond|rebondit}} depuis la case du joueur → <strong>Turnover</strong>.",
+    voir:['rebond','turnover']
+  },
+
+  reception: {
+    grp:'proc', nom:'Réception', chips:['Passe, transmission, ballon dévié'], de:'D6 vs AG',
+    lede:"Tout joueur Debout dont la case reçoit le ballon tente de l'attraper.",
+    etapes:[
+      "Jeter <strong>1D6</strong>, <strong>+1</strong> si le ballon vient d'une passe précise ou d'une transmission.",
+      "Appliquer <strong>−1 par zone de tacle adverse</strong> qui contrôle la case du receveur.",
+      "Réussite si le résultat modifié est ≥ à l'<strong>AG</strong> du receveur.",
+      "Un joueur Au sol ou Sonné ne peut pas réceptionner."
+    ],
+    echec:"Le ballon {{rebond|rebondit}} depuis la case du receveur.",
+    voir:['rebond','passe','transmission']
+  },
+
+  rebond: {
+    grp:'proc', nom:'Rebond et déviation', chips:['Ballon libre'], de:'D8',
+    lede:"Quand le ballon n'est tenu par personne, il part au hasard.",
+    etapes:[
+      "<strong>Rebond :</strong> 1 jet de D8 depuis la case concernée, le ballon part d'une case dans la direction indiquée.",
+      "Si la case d'arrivée contient un joueur Debout, il tente une {{reception|Réception}} (sans le +1).",
+      "Si elle contient un joueur Au sol ou est vide, le ballon s'y arrête. S'il sort du terrain, il y a <strong>remise en jeu par la foule</strong>.",
+      "<strong>Déviation :</strong> une passe imprécise enchaîne 3 jets de D8 successifs depuis la case visée avant de rebondir." + V
+    ],
+    voir:['reception','passe','turnover']
+  },
+
+  armure: {
+    grp:'proc', nom:'Armure et blessure', chips:['Joueur mis au sol'], de:'2D6',
+    lede:"Chaque fois qu'un joueur est mis au sol, on vérifie s'il encaisse.",
+    etapes:[
+      "<strong>Jet d'armure :</strong> 2D6. Si le résultat est ≥ à la valeur d'<strong>Armure (AV)</strong> du joueur, l'armure est percée.",
+      "Armure intacte : le joueur reste simplement Au sol.",
+      "Armure percée : effectuer le <strong>jet de blessure</strong> (2D6 + modificateurs).",
+      "Un joueur <strong>Sonné</strong> est retourné Au sol à la fin du tour de son équipe."
+    ],
+    tables:[
+      { caption:'Jet de blessure (2D6)',
+        rows:[
+          ['2 – 7','<strong>Sonné</strong> — reste sur le terrain, face contre terre.'],
+          ['8 – 9','<strong>K.O.</strong> — sort en réserve, revient peut-être au prochain engagement.'],
+          ['10 +','<strong>Blessé</strong> — sortie du terrain, jet sur la table des blessures (D16).']
+        ]}
+    ],
+    voir:['turnover','blocage']
+  },
+
+  turnover: {
+    grp:'proc', nom:'Turnover', chips:['Fin immédiate du tour'], de:null,
+    lede:"Le tour de l'équipe active s'arrête net : tous les joueurs qui n'ont pas encore agi perdent leur action.",
+    etapes:[
+      "Un joueur de l'<strong>équipe active</strong> est mis au sol ou tombe (esquive, ruée, blocage raté…).",
+      "Le ballon <strong>touche le sol</strong> après une passe, une transmission ou un lancer non rattrapé.",
+      "Un <strong>ramassage</strong> ou une <strong>réception</strong> ratée qui fait tomber le ballon au sol.",
+      "Un joueur de l'équipe active est <strong>expulsé</strong> pour une agression." + V,
+      "L'équipe dépasse le <strong>temps limite</strong> de son tour.",
+      "Un <strong>touchdown</strong> met également fin au tour (mais ce n'est pas un turnover : on rejoue un engagement)."
+    ],
+    note:"Une relance d'équipe utilisée à temps peut éviter le turnover : elle se déclare avant d'appliquer le résultat.",
+    voir:['relances','esquive','armure']
+  },
+
+  relances: {
+    grp:'proc', nom:'Relances d\'équipe', chips:['1 par tour d\'équipe'], de:null,
+    lede:"Le filet de sécurité du coach — à dépenser au bon moment.",
+    etapes:[
+      "<strong>Une seule relance d'équipe par tour d'équipe</strong>, à déclarer immédiatement après le jet raté.",
+      "On relance <strong>tous les dés</strong> du jet concerné et on garde le nouveau résultat.",
+      "Une relance ne peut pas relancer un jet déjà relancé.",
+      "Les compétences (Esquive, Sûres Mains, Blocage…) offrent leurs propres relances, à utiliser <strong>avant</strong> la relance d'équipe.",
+      "Les relances non utilisées à la mi-temps sont perdues : le stock est remis à neuf pour la seconde mi-temps."
+    ],
+    voir:['turnover']
+  },
+
+  structure: {
+    grp:'proc', nom:'Structure de la partie', chips:['2 mi-temps × 8 tours'], de:null,
+    lede:"Une partie de Blood Bowl se joue en deux mi-temps de huit tours par équipe.",
+    etapes:[
+      "Chaque mi-temps commence par un <strong>engagement</strong> (coup d'envoi).",
+      "Les équipes alternent : un <strong>tour d'équipe</strong> chacune, huit fois par mi-temps.",
+      "Pendant son tour, une équipe active ses joueurs <strong>un par un</strong> : chaque joueur Debout ou Au sol peut effectuer <strong>une seule action</strong>.",
+      "Certaines actions sont limitées à <strong>une par tour d'équipe</strong> : Blitz, Passe, Transmission, Agression, Lancer de coéquipier.",
+      "Le tour se termine quand tous les joueurs ont agi, qu'un touchdown est marqué, ou sur un {{turnover|Turnover}}.",
+      "Après un touchdown, on rejoue un engagement — et le tour compte quand même."
+    ],
+    voir:['turnover','relances']
+  }
+};
+
+const ORDRE_ACTIONS = ['mouvement','blocage','blitz','passe','transmission','agression','lancer','speciales'];
+const ORDRE_PROC = ['structure','releve','ruee','esquive','ramassage','reception','rebond','armure','turnover','relances'];
+const LIMITEES = ['blitz','passe','transmission','agression','lancer'];
+
+/* ---------- État ---------- */
+let etat = { mt:1, tour:1, used:[], actif:'structure' };
+try { const s = JSON.parse(localStorage.getItem('bb-aide')||'null'); if(s) etat = Object.assign(etat, s); } catch(e){}
+function save(){ try{ localStorage.setItem('bb-aide', JSON.stringify(etat)); }catch(e){} }
+
+/* ---------- Rendu du bandeau ---------- */
+const pipsEl = document.getElementById('pips');
+function renderPips(){
+  pipsEl.textContent = '';
+  for(let mt=1; mt<=2; mt++){
+    if(mt===2){ const s=document.createElement('span'); s.className='sep'; pipsEl.appendChild(s); }
+    for(let t=1; t<=8; t++){
+      const b=document.createElement('button');
+      b.className='pip'; b.textContent=t; b.type='button';
+      b.setAttribute('aria-label','Mi-temps '+mt+', tour '+t);
+      const cur = (mt===etat.mt && t===etat.tour);
+      b.setAttribute('aria-current', cur ? 'true':'false');
+      if(mt<etat.mt || (mt===etat.mt && t<etat.tour)) b.classList.add('past');
+      b.onclick = ()=>{ etat.mt=mt; etat.tour=t; etat.used=[]; save(); renderPips(); renderListes(); };
+      pipsEl.appendChild(b);
+    }
+  }
+  document.getElementById('tour-lbl').textContent = 'Mi-temps '+etat.mt+' · Tour '+etat.tour;
+}
+document.getElementById('fin-tour').onclick = ()=>{
+  if(etat.tour<8){ etat.tour++; } else if(etat.mt===1){ etat.mt=2; etat.tour=1; }
+  etat.used=[]; save(); renderPips(); renderListes();
+};
+
+/* ---------- Rendu des listes ---------- */
+function bouton(id){
+  const f = FICHES[id];
+  const row = document.createElement('div'); row.className='row';
+  const b = document.createElement('button');
+  b.type='button'; b.className='action';
+  b.setAttribute('aria-pressed', String(etat.actif===id));
+  if(etat.used.includes(id)) b.classList.add('used');
+  const n = document.createElement('span'); n.className='nom'; n.textContent=f.nom;
+  b.appendChild(n);
+  if(f.cap){ const c=document.createElement('span'); c.className='cap'; c.textContent=f.cap; b.appendChild(c); }
+  b.onclick = ()=>montrer(id);
+  row.appendChild(b);
+  if(LIMITEES.includes(id)){
+    const t=document.createElement('button');
+    t.type='button'; t.className='tick'; t.textContent='✕';
+    t.title='Marquer cette action comme utilisée ce tour';
+    t.setAttribute('aria-label','Marquer « '+f.nom+' » comme utilisée ce tour');
+    t.setAttribute('aria-pressed', String(etat.used.includes(id)));
+    t.onclick = ()=>{
+      const i = etat.used.indexOf(id);
+      if(i<0) etat.used.push(id); else etat.used.splice(i,1);
+      save(); renderListes();
+    };
+    row.appendChild(t);
+  }
+  return row;
+}
+function renderListes(){
+  const a = document.getElementById('liste-actions'); a.textContent='';
+  ORDRE_ACTIONS.forEach(id=>a.appendChild(bouton(id)));
+  const p = document.getElementById('liste-proc'); p.textContent='';
+  ORDRE_PROC.forEach(id=>p.appendChild(bouton(id)));
+}
+
+/* ---------- Rendu de la fiche ---------- */
+function liens(html){
+  return html.replace(/\{\{([a-z]+)\|([^}]+)\}\}/g, (m,id,txt)=>
+    '<button type="button" class="inl" data-go="'+id+'">'+txt+'</button>');
+}
+function montrer(id){
+  const f = FICHES[id]; if(!f) return;
+  etat.actif = id; save();
+  const el = document.getElementById('fiche');
+  let h = '';
+  h += '<p class="eyebrow">'+(f.grp==='action'?'Action':'Procédure')+'</p>';
+  h += '<h2>'+f.nom+'</h2>';
+  h += '<div class="chips">';
+  if(f.limite) h += '<span class="chip">'+f.limite+'</span>';
+  (f.chips||[]).forEach(c=> h += '<span class="chip">'+c+'</span>');
+  if(f.de) h += '<span class="chip de">'+f.de+'</span>';
+  h += '</div>';
+  h += '<p class="lede">'+f.lede+'</p>';
+  h += '<ol class="etapes">'+f.etapes.map(e=>'<li>'+liens(e)+'</li>').join('')+'</ol>';
+  if(f.assist) h += '<p class="note" style="margin:-0.8rem 0 1.6rem; max-width:64ch">'+f.assist+'</p>';
+  if(f.echec) h += '<div class="callout"><h3>En cas d\'échec</h3><p>'+liens(f.echec)+'</p></div>';
+  (f.tables||[]).forEach(t=>{
+    h += '<div class="tablewrap"><table><caption>'+t.caption+'</caption><tbody>';
+    t.rows.forEach(r=> h += '<tr><th scope="row">'+r[0]+'</th><td>'+r[1]+'</td></tr>');
+    h += '</tbody></table></div>';
+  });
+  if(f.note) h += '<p class="note" style="max-width:64ch; margin-bottom:1.6rem">'+f.note+'</p>';
+  if(f.voir && f.voir.length){
+    h += '<div class="voir"><span class="lbl">Voir aussi</span>';
+    f.voir.forEach(v=> h += '<button type="button" class="lien" data-go="'+v+'">'+FICHES[v].nom+'</button>');
+    h += '</div>';
+  }
+  el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap');
+  el.innerHTML = h;
+  el.querySelectorAll('[data-go]').forEach(b=> b.onclick = ()=>{
+    montrer(b.dataset.go);
+    if(window.innerWidth<=880) el.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+  renderListes();
+}
+
+renderPips();
+renderListes();
+montrer(etat.actif);
+</script>
