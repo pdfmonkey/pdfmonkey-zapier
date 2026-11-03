@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- (Fix) Restoring the raw-JSON inputs of Generate Document to `text` fields so data from previous steps can be mapped into them again (the `code` field introduced in 5.0.0 has no mapping button)
+
 ## 5.0.1 (2026-08-26)
 
 - (Fix) Generating a real Document when testing Generate Document in the Zap editor instead of returning the static demo sample. The Zap editor never resumes a callback during setup, so the sample run waits for the generation by polling — budgeted at 25s, within Zapier's 30s `perform` limit — and returns the finished DocumentCard; live Tasks keep using the callback
