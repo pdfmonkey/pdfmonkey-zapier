@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 5.0.2 (2026-11-03)
 
 - (Fix) Restoring the raw-JSON inputs of Generate Document to `text` fields so data from previous steps can be mapped into them again (the `code` field introduced in 5.0.0 has no mapping button)
 
