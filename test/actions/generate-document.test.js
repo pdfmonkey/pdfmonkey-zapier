@@ -112,7 +112,7 @@ describe('Actions::GenerateDocument', () => {
     describe('with data as real JSON', () => {
       const captured = mockGeneration();
 
-      // The `code` field delivers the payload as a raw JSON string.
+      // The `text` field delivers the payload as a raw JSON string.
       const bundle = {
         ...bundleWithAuth(),
         inputData: {
@@ -465,7 +465,7 @@ describe('Actions::GenerateDocument', () => {
           appTester(App.creates.generateDocument.operation.inputFields[3], bundle)
             .then((response) => {
               expect(response[0].key).toEqual('payload');
-              expect(response[0].type).toEqual('code');
+              expect(response[0].type).toEqual('text');
               done();
             })
             .catch(done);

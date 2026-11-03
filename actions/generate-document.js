@@ -9,8 +9,8 @@ const documentCardMapping = require('../mappings/document-card');
 // booleans used a 'Yes'/'No' dropdown. Accept both so existing Tasks keep working.
 const isEnabled = (value) => value === true || value === 'Yes';
 
-// Native `json` fields arrive parsed, but a field mapped to a single string
-// value can still come through as text — normalize either shape to an object,
+// Raw-JSON inputs are `text` fields (so users can map data from previous steps
+// into them) and arrive as strings — normalize them to an object,
 // surfacing a readable message instead of a raw SyntaxError on bad input.
 const asObject = (value, z, label) => {
   if (typeof value !== 'string') return value || {};
@@ -29,7 +29,7 @@ const payloadInput = (z, bundle) => {
         key: 'payload',
         label: 'Data for the Document (JSON Payload)',
         helpText: 'Use the JSON format `{ "firstname": "Jane", "lastname": "Doe" }`.',
-        type: 'code'
+        type: 'text'
       }
     ];
   }
@@ -52,7 +52,7 @@ const lineItemsPayloadInput = (z, bundle) => {
         {
           key: 'itemPayload',
           label: 'Dynamic Data for an Item (JSON Payload)',
-          type: 'code',
+          type: 'text',
           helpText:
             'JSON Payload **for a single item**. Format: `{ "name": "Cool product", "price": 123.45 }`. Available as `lineItems` in your PDFMonkey Template.',
           default: '{\n  "name": "Cool product",\n  "price": 123.45\n}'
